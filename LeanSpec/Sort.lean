@@ -110,11 +110,6 @@ is refined, and clearer ways of expressing concepts are discovered.
 
 - Specify a function that, given a natural number, returns the prime factors of the number.
 Use the `prime` property from the last exercise.
--/
-def prime (n : Nat) := n > 1 ∧ ∀x : Nat, 1 < x ∧ x < n → n % x ≠ 0
 
-def Factors (n : { x : Nat // x > 1 }) := { pf : List Nat // pf.mul 1 = n ∧ ∀ f ∈ pf, prime f }
-/-
 - Using `permutation₂`, specify a function that returns all permutations of an input list.
 -/
-def Permutations [BEq α] (as : List α) := { xs : List (List α) // ∀x, x ∈ xs ↔ permutation₂ x as }

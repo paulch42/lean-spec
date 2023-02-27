@@ -3,7 +3,7 @@
 [Lean](https://leanprover.github.io) is a dependently typed functional programming language that incorporates
 the correspondence between propositions and types (and between proofs and programs).
 As such it is able to serve as a basis for the formalisation of mathematics (i.e., the
-specification and proof of theorems). Indeed, a considerable body of mathematics has
+statement and proof of theorems). Indeed, a considerable body of mathematics has
 been formalised in [version 3 of Lean](https://leanprover-community.github.io), and is packaged as
 [mathlib](https://github.com/leanprover-community/mathlib). A good introduction to the
 use of Lean for the formalisation of mathematics is
@@ -38,7 +38,7 @@ logic is not addressed here. The contents of this tutorial are:
 |   |   |
 | - | - |
 | [Introduction](md/Introduction.md)    | Introduction to Lean as a specification language |
-| [Quotient & Remainder](md/QuotRem.md) | Simple first example: quotient and remainder on division |
+| [Quotient & Remainder](md/QuotRem.md) | Quotient and remainder on division |
 | [Sort](md/Sort.md)                    | Sorting a list of items |
 | [Knapsack](md/Knapsack.md)            | Knapsack: an optimisation problem |
 | [Graph](md/Graph.md)                  | Graph searching |
@@ -49,11 +49,11 @@ The following supplementary modules support the example specifications:
 
 |   |   |
 | - | - |
-| [Util](md/lib/Util.md) | General purpose functions that could in future appear in a standard library |
-| [DTG](md/lib/DTG.md)   | A simple theory of dates, times, durations and intervals |
-| [Geo](md/lib/Geo.md)   | Basic geospatial entities |
+| [Util](md/lib/Util.md)         | General purpose functions that could in future appear in a standard library |
+| [Temporal](md/lib/Temporal.md) | A simple theory of dates, times, durations and intervals |
+| [Geo](md/lib/Geo.md)           | Basic geospatial entities |
 
-Some concluding remarks are provided [here](Conclusion.md).
+Some concluding remarks are provided [here](Conclusion.md) (to do).
 
 ## Creating The Markdown Files
 

@@ -265,9 +265,9 @@ def omittedDeviation (period window : Interval) : Duration :=
 /-
 The deviations for all flights that requested a take off during the period of the TMI.
 -/
-def deviations (cfg : TMIConfig) (tmi : FlightAllocation cfg) : List Duration :=
+def deviations (cfg : TMIConfig) (alloc : FlightAllocation cfg) : List Duration :=
   let deviation (fdep : FlightId × FlightDeparture) : Duration :=
-        match find? fdep.1 tmi.gdp with
+        match find? fdep.1 alloc.gdp with
         | none      => omittedDeviation cfg.period fdep.2.window
         | some slot => allocatedDeviation fdep.2 slot
   cfg.flights.toList.map deviation
@@ -276,8 +276,8 @@ def deviations (cfg : TMIConfig) (tmi : FlightAllocation cfg) : List Duration :=
 The `cost` of a TMI is the sum of the costs of the flights that requested a take off
 during the TMI.
 -/
-def cost (cfg : TMIConfig) (tmi : FlightAllocation cfg) : Duration :=
-  (deviations cfg tmi).add 0
+def cost (cfg : TMIConfig) (alloc : FlightAllocation cfg) : Duration :=
+  (deviations cfg alloc).add 0
 
 /-
 ### Departure TMI
@@ -287,7 +287,7 @@ Combining the components above, the departure TMI can be specified as:
 necessarily unique) TMI whose cost is no greater than any other TMI.
 -/
 def DepartureTMI (cfg : TMIConfig) :=
-  { opt : FlightAllocation cfg // ∀ tmi : FlightAllocation cfg, cost cfg opt ≤ cost cfg tmi }
+  { opt : FlightAllocation cfg // ∀ alloc : FlightAllocation cfg, cost cfg opt ≤ cost cfg alloc }
 
 /-
 ## Further Discussion
@@ -340,18 +340,18 @@ hence includes things like:
 - slots referring to runways that do not exist.
 
 It is then necessary to define a function `satisfies`, external to the type definition,
-that specifies when a departure TMI satisfies a TMI configuration (that is, the
+that specifies when a flight allocation satisfies a TMI configuration (that is, the
 `FlightAllocation` is a valid solution to the `TMIConfig`).
 -/
-def satisfies (cfg : TMIConfig) (gdp : FlightAllocation₂) : Prop :=
-  gdp.domain ⊆ cfg.flights.domain ∧
-  (∀ slot ∈ gdp.range, slot.rwy ∈ cfg.rates.domain) ∧
-  (∀ fsl ∈ gdp, ∀ fdep ∈ cfg.flights,
+def satisfies (cfg : TMIConfig) (alloc : FlightAllocation₂) : Prop :=
+  alloc.domain ⊆ cfg.flights.domain ∧
+  (∀ slot ∈ alloc.range, slot.rwy ∈ cfg.rates.domain) ∧
+  (∀ fsl ∈ alloc, ∀ fdep ∈ cfg.flights,
     fsl.1 = fdep.1 → fsl.2.rwy ∈ fdep.2.canUse) ∧
-  (∀ fsl ∈ gdp, ∀ fdep ∈ cfg.flights,
+  (∀ fsl ∈ alloc, ∀ fdep ∈ cfg.flights,
     fsl.1 = fdep.1 → fsl.2.ttot ∈ fdep.2.window) ∧
-  (∀ slot ∈ gdp.range, slot.ttot ∈ cfg.period) ∧
-  (∀ fsl₁ ∈ gdp, ∀ fsl₂ ∈ gdp, ∀ fr ∈ cfg.rates,
+  (∀ slot ∈ alloc.range, slot.ttot ∈ cfg.period) ∧
+  (∀ fsl₁ ∈ alloc, ∀ fsl₂ ∈ alloc, ∀ fr ∈ cfg.rates,
     fsl₁.1 ≠ fsl₂.1 ∧ fsl₁.2.rwy = fsl₂.2.rwy ∧ fr.1 = fsl₁.2.rwy → 
       fsl₁.2.ttot - fsl₂.2.ttot ≥ fr.2)
 
@@ -370,9 +370,9 @@ functions over those types tends to be simpler.
 specification was changed such that the cost function only considered flights that
 are included in the TMI? That is, change `deviations` to:
 -/
-def deviations₁ (cfg : TMIConfig) (tmi : FlightAllocation cfg) : List Duration :=
+def deviations₁ (cfg : TMIConfig) (alloc : FlightAllocation cfg) : List Duration :=
   let deviation (fdep : FlightId × FlightDeparture) : Duration :=
-        match find? fdep.1 tmi.gdp with
+        match find? fdep.1 alloc.gdp with
         | none      => 0
         | some slot => allocatedDeviation fdep.2 slot
   cfg.flights.toList.map deviation

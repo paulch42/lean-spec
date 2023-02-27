@@ -4,6 +4,9 @@
 This module defines generic functions and types. The nature of the defintions is such that
 they could reasonably appear in the Lean standard library at a future date. Items are
 included only if needed in support of the examples in the tutorial.
+
+The focus of this tutorial is specification, not proof or implementation. Most instances
+where a proof is required are left as `sorry`.
 -/
 import Std.Data.AssocList
 
@@ -19,8 +22,6 @@ instance : DecidableEq (Str m n) :=
   sorry
 
 /-
-The focus in this tutorial is progam specification. Proofs wont be developed.
-
 Non-zero natural numbers.
 -/
 def Nat₁ := { n : Nat // n ≠ 0 }
@@ -53,25 +54,19 @@ def numOccurs [BEq α] (a : α) : List α → Nat
   | b::as => if a == b then numOccurs a as + 1 else numOccurs a as
 
 /-
-The sum of the elements of a list. The bases type must be an instance of `Add`, and the identity provided as an argument.
+The sum of the elements of a list. The base type must be an instance of `Add`, and the identity is provided as an argument.
 -/
 def add [Add α] (as : List α) : α → α :=
   as.foldr (· + ·)
 
 /-
-The product of the elements of a list. The base type must be an instance of `Mul`, and the identity provided as an argument.
+The product of the elements of a list. The base type must be an instance of `Mul`, and the identity is provided as an argument.
 -/
 def mul [Mul α] (as : List α) : α → α :=
   as.foldr (· * ·)
 
 /-
-Subset relation on lists: are all elements of one list contained in another? Multiplicity is ignored.
--/
-def subset (as bs : List α) :=
-  ∀ a : α, a ∈ as → a ∈ bs
-
-/-
-Set equality relation on lists: same elemnts regardless of order or multiplicity.
+Set equality relation on lists: same elements regardless of order or multiplicity.
 -/
 def seteq (as bs : List α) :=
   ∀ a : α, a ∈ as ↔ a ∈ bs
@@ -146,14 +141,9 @@ end Sum
 ## AssocList
 
 Elements of type `AssocList` are lists whose elements are key/value pairs.
+`AssocList` is defined in [std4](https://github.com/leanprover/std4).
 -/
 namespace Std.AssocList
-
-/-
-Add an item to an association list.
--/
-def add (al : AssocList α β) : α →  β → AssocList α β :=
-  al.cons
 
 /-
 The domain of an `AssocList` is the list of the first elements in the pairs.
@@ -219,7 +209,7 @@ instance [BEq α] : EmptyCollection (α ⟹ β) where
   emptyCollection := ⟨∅, rfl⟩
 
 /-
-many of the functions are `Map` versions of the corresponding `AssocList` functions.
+Many of the functions are `Map` versions of the corresponding `AssocList` functions.
 
 Question: could some of these definitions be avoided through coercion?
 -/
@@ -241,7 +231,7 @@ def erase [BEq α] (m : α ⟹ β) (a : α) : α ⟹ β :=
 Add an item to a map.
 -/
 def add [BEq α] (m : α ⟹ β) (a : α) (b : β) : α ⟹ β :=
-  ⟨(m.erase a).val.add a b, sorry⟩
+  ⟨(m.erase a).val.cons a b, sorry⟩
 
 /-
 Find the entry (key and value) associated with a key, if in the map.

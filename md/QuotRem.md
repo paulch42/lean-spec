@@ -23,6 +23,8 @@ def Qr₁ := (n d : Nat) → (d ≠ 0) →
            { qr : Nat × Nat // n = d * qr.1 + qr.2 ∧ qr.2 < d }
 ```
 
+`Qr₁` is the type of functions that take a natural  number `n`, a natural number `d`, evidence that `d` is non-zero,
+and produce a pair of values that are the quotient and remainder when `n` is divided by `d`.
 The data value in the result type is a pair (`Nat × Nat`) whose first element (`qr.1`) is the quotient
 and second element (`qr.2`) is the remainder. (Note: `qr.fst` and `qr.snd` can be used respectively for `qr.1` and `qr.2`.)
 
@@ -34,9 +36,10 @@ def Qr₂ := ∀ n d : Nat, d ≠ 0 →
            { qr : Nat × Nat // n = d * qr.1 + qr.2 ∧ qr.2 < d }
 ```
 
-`∀` is simply notation defined in terms of the dependent function type. The presentation we choose
-is a matter of taste. The convention usually adopted is to employ the dependent function type
-for a computable function, and the universal quantifier when specifying a property.
+Despite the use of `∀`, `Qr₂` is still a type, not a proposition. `∀` is simply notation defined
+in terms of the dependent function type. The presentation we choose is a matter of taste. The
+convention usually adopted is to employ the dependent function type for a computable function,
+and the universal quantifier when specifying a property.
 
 The one difference is the type annotation is mandatory in a dependent function type,
 but optional in a universal quantifier (if Lean is able to infer the type). For example,
@@ -47,7 +50,7 @@ def Qr₃ := ∀ n d, d ≠ 0 →
            { qr : Nat × Nat // n = d * qr.1 + qr.2 ∧ qr.2 < d }
 ```
 
-A function derived from the specification `Qr₃` has three arguments: the numerator,
+A function derived from the specification `Qr₂` has three arguments: the numerator,
 the denominator, and evidence the denominator is non-zero. Alternatively, we could make
 further use of the subtype to specify a function of two arguments:
 
@@ -73,19 +76,6 @@ and produce a pair of numbers `(q,r)` such that `n = d * q + r ∧ r < d`.
 
 - Specify a property that determines if a number is a prime number. Use the Lean remainder on division operator (`%`).
 
-```lean
-def prime (n : Nat) := n > 1 ∧ ∀x : Nat, 1 < x ∧ x < n → n % x ≠ 0
-```
-
 - Specify a property that determines if a number is a prime factor of another number.
 
-```lean
-def primeFactor (p n : Nat) := prime p ∧ n % p = 0
-```
-
 - Specify a function that computes that maximum prime factor of a natural number greater than 1.
-
-```lean
-def MaxPrimeFactor (n : { x : Nat // x > 1 }) :=
-  { p : Nat // primeFactor p n ∧ ∀ x, primeFactor x n → x ≤ p }
-```

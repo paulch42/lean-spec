@@ -172,14 +172,8 @@ sum in the specification of `ShortestPath` by requiring there is at least one pa
 ## Exercises
 
 - Modify the specification of `ShortestPath` such that it does not assume the existence of a path.
--/
-def ShortestPath₁ (g : Graph) (s e : Node) :=
-  { p : IsPath g s e // ∀ q : IsPath g s e, pathCost p.val ≤ pathCost q.val } ⊕ (IsPath g s e → Empty)
-/-
+
 - Specify the property that a graph has no edges with identical start and end nodes.
--/
-def noRefl (g : Graph) := ∀ e ∈ g.list, e.starts ≠ e.ends
-/-
+
 - Specify the property that a graph is acyclic.
 -/
-def acyclic (g : Graph) := ¬ ∃ (n : Node) (p : Path g), pathStart p = n ∧ pathEnd p = n

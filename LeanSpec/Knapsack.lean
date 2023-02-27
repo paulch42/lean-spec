@@ -73,7 +73,7 @@ With these definitions, we can specify the knapsack problem.
 The optimal solution is a (not necessarily unique) candidate solution such that
 no better candidate exists.
 -/
-def knapsack₁ (capacity : Nat) (source : List Item) :=
+def Knapsack₁ (capacity : Nat) (source : List Item) :=
   { opt : List Item
     // candidate capacity source opt ∧
        ∀ is : List Item, candidate capacity source is → value is ≤ value opt }

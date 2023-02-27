@@ -155,7 +155,7 @@ instance : Add Duration where
 /-
 Difference of two durations.
 
-Note: `d₁ - d₂ = d₂ - d₁ = max d₁ d₂ - min d₁ d₂`, hence is magnitude of difference.
+Note: `d₁ - d₂ = d₂ - d₁ = max d₁ d₂ - min d₁ d₂`, hence it is magnitude of the difference.
 -/
 instance : Sub Duration where
   sub := fun ⟨d₁⟩ ⟨d₂⟩ ↦ if d₁ < d₂ then ⟨d₂ - d₁⟩ else ⟨d₁ - d₂⟩
@@ -192,7 +192,9 @@ instance : HSub DTG Duration DTG where
   hSub := fun ⟨d₁⟩ ⟨d₂⟩ ↦ ⟨d₁ - d₂⟩
 
 /-
-The duration between two DTGs. The operation is commutative.
+The duration between two DTGs.
+
+Note: `d₁ - d₂ = d₂ - d₁ = max d₁ d₂ - min d₁ d₂`, hence it is magnitude of the difference.
 -/
 instance : HSub DTG DTG Duration where
   hSub := fun ⟨d₁⟩ ⟨d₂⟩ ↦ if d₁ < d₂ then ⟨d₂ - d₁⟩ else ⟨d₁ - d₂⟩
@@ -307,7 +309,7 @@ def durationOf (i : Interval) : Duration :=
   i.ends - i.starts
 
 /-
-The interval commencing a date/time for a given duration.
+The interval commencing at a date/time lasting for a given duration.
 -/
 def intervalOf (dtg : DTG) (dur : Duration) : Interval :=
   ⟨dtg, dtg+dur, sorry⟩

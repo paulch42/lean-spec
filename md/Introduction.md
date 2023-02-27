@@ -88,13 +88,15 @@ Some of the types provided by Lean are:
 | (a:A) × B a | Dependent Product   |
 
 Most of these types are common with many other languages. The last two are
-characteristic of dependent type theory.
+characteristic of dependent type theory. The function and Cartesian product types
+are the degenerate cases of the dependent function and product types (respectively)
+in which there is no dependence between the type arguments.
 
 ## Types, Propositions and Specifications
 
 The propositional connectives and quantifiers provided by Lean are commonly understood,
-as are the non-dependent types. It is the dependent function and product types that
-give dependent type theory (and hence Lean) its unique flavour.
+as are the non-dependent types. The dependent function and product types are less
+familiar and give dependent type theory (and hence Lean) its unique flavour.
 
 Consider the specification of a function that doubles a number. Its property
 is captured by:
@@ -110,7 +112,7 @@ to define a function separately and prove it satisfies the proposition.
 Types, on the other hand, have data and computational content. If we had a type
 that captured the same meaning as the proposition, then an element of the type
 would be a function satisfying the proposition. It is the expressive power of
-dependent types that allow us to construct types of this nature. Given that
+dependent type theory that allows us to construct types of this nature. Given the
 dependent function corresponds to universal quantification, and dependent product
 corresponds to existential quantification, we might try something like:
 
