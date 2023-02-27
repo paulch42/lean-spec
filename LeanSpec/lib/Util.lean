@@ -1,7 +1,7 @@
 /-
 # General Purpose Functions
 
-This module defines generic functions and types. The nature of the defintions is such that
+This module defines generic functions and types. The nature of the definitions is such that
 they could reasonably appear in the Lean standard library at a future date. Items are
 included only if needed in support of the examples in the tutorial.
 
@@ -188,7 +188,7 @@ end Std.AssocList
 /-
 ## Map
 
-Defintion of a type of finite maps.
+Definition of a type of finite maps.
 
 Map is defined in terms of association lists in which keys are associated with
 only one value.

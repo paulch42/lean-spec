@@ -65,9 +65,9 @@ the purpose of the message. In the above FPL, those fields are:
 The specification is concerned with the processing of flight plan and related messages, and consists of:
 
 - a model of the data elements, fields, and messages;
-- defintion of invariants on the messages, which primarily capture consistency costraints between the different fields;
+- definition of invariants on the messages, which primarily capture consistency constraints between the different fields;
 - the definition of a state that models a collection of flight information that might be held by a system;
-- given a state and a received mesage, the specification of how a revised state is created from the supplied state and the message;
+- given a state and a received message, the specification of how a revised state is created from the supplied state and the message;
 - some maintenance activities on the state. 
 
 The model and program specification are contained in four modules:
@@ -76,7 +76,7 @@ The model and program specification are contained in four modules:
 | - | - |
 | [Core](FPL/Core.md)       | The core data elements from which higher level entities are built |
 | [Field](FPL/Field.md)     | The fields from which the messages are assembled |
-| [Message](FPL/Message.md) | The various messages employed for flight planning purposes |
-| [Process](FPL/Process.md) | The processing of messages with respect to a state |
+| [Message](FPL/Message.md) | The various messages employed for flight planning purposes (__in progress__) |
+| [Process](FPL/Process.md) | The processing of messages with respect to a state (__in progress__) |
 
-Note these modules depend on the general purpose defintions in `lib.Util`, `lib.Geo` and `lib.Temporal`.
+Note these modules depend on the general purpose definitions in `lib.Util`, `lib.Geo` and `lib.Temporal`.

@@ -43,7 +43,7 @@ logic is not addressed here. The contents of this tutorial are:
 | [Knapsack](md/Knapsack.md)            | Knapsack: an optimisation problem |
 | [Graph](md/Graph.md)                  | Graph searching |
 | [TMI](md/TMI.md)                      | A scheduling example from the aviation industry |
-| [Flight Planning](md/FPL.md)          | Flight planning message processing example from the aviation industry (__under development__) |
+| [Flight Planning](md/FPL.md)          | Flight planning message processing example from the aviation industry |
 
 The following supplementary modules support the example specifications:
 

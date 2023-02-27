@@ -88,8 +88,8 @@ def Sort₂ [BEq α] [LE α] (as : List α) :=
 The predicate `ordered₂` is typical of a traditional approach, perhaps with the
 exception the result is a `Prop` rather than a `Bool`. Dependently typed
 languages such as Lean offer an alternative approach; namely that of _Inductive Predicates_.
-An inductive predicate is simply an inductive defintion of a proposition as opposed to
-an inductive defintion of a type (list, tree, etc), and a member of the
+An inductive predicate is simply an inductive definition of a proposition as opposed to
+an inductive definition of a type (list, tree, etc), and a member of the
 inductive proposition is a proof of the proposition. For `ordered` we could have:
 
 ```lean

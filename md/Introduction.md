@@ -149,7 +149,7 @@ def Double₃ (n : Nat) := { m : Nat // m = 2 * n }
 This latter approach will in general be used throughout the tutorial.
 
 Strictly, an element of `{ a : A // P a }` is not simply an element of `A`, it is
-a pair whose first component is an elelemnt `a` of type `A`, and whose second
+a pair whose first component is an element `a` of type `A`, and whose second
 component is evidence of `P a`. If we were to define a function that meets this
 specification it would look like:
 

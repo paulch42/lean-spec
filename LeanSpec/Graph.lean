@@ -136,7 +136,7 @@ def IsPath (g : Graph) (s e : Node) := { p : Path g // pathStart p = s ∧ pathE
 /-
 In the case a path exists we want to create an element of `IsPath g s e` (the type of paths from
 `s` to `e` over `g`). If no path exists, we need to provide evidence for said fact. At the
-propositonal level this would be `¬ P`, which is definitionally equal to `P → False`, and when
+propositional level this would be `¬ P`, which is definitionally equal to `P → False`, and when
 working at the type level this becomes `T → Empty`. Consequently, we are led to the definition: 
 -/
 def FindPath₃ (g : Graph) (s e : Node) :=
