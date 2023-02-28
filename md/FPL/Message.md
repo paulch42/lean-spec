@@ -3,84 +3,11 @@
 This module defines the content and properties of the flight plan related ATS messages defined in PANS-ATM.
 
 ```lean
-import LeanSpec.FPL.Field
-
-set_option autoImplicit false
+import LeanSpec.FPL.Flight
 
 open Temporal Core FPL.Field
 
 namespace FPL
-```
-
-## Flight Identification
-
-The flight identifier is used for when matching a message against known flights. The match is based on:
-- aircraft identification (field 7a);
-- departure aerodrome (field 13a);
-- flight time  a period of time based on the departure time (13b) and flight duration (16b).
-
-```lean
-structure FlightId where
-  acid   : AircraftIdentification
-  adep   : Option ADep
-  period : Interval
-deriving DecidableEq
-```
-
-If two flight identifiers match they may refer to the same flight. Information can be received from
-multiple sources, and it is not always 100% consistent. Matching attempts to find the best fit.
-Two identifiers match if they have:
-
-- same aircraft identification;
-- same departure point;
-- overlapping flight times.
-
-```lean
-def FlightId.match : FlightId → FlightId → Bool
-  | ⟨a₁,d₁,p₁⟩, ⟨a₂,d₂,p₂⟩ => a₁ = a₂ ∧ d₁ = d₂ ∧ p₁.overlap p₂
-```
-
-Instances of class `FlightTime` are entities that have an identifiable period of flight.
-
-```lean
-class FlightTime (α: Type) where
-  period : α → Interval
-```
-
-Default maximum time of flight when full information is not available.
-
-```lean
-def maxFlightTime := Duration.oneHour * 20
-```
-
-Default maximum time of a round trip flight (departure = destination) when full information
-is not available.
-
-```lean
-def maxRoundTripTime := Duration.oneHour * 6
-```
-
-Estimated flight time based on departure time, estimated flight duration, and whether
-departure = destination.
-
-```lean
-def adepAdesFlightTime : Field13a → DTG → Field16a → Option Duration → Interval
-  |  f13a, f13b, f16a, none      => if adepIsAdes f13a f16a then
-                                      Interval.intervalOf f13b maxRoundTripTime
-                                    else
-                                      Interval.intervalOf f13b maxFlightTime
-  |  f13a, f13b, f16a, some teet => if adepIsAdes f13a f16a then
-                                      Interval.intervalOf f13b (min teet maxRoundTripTime)
-                                    else
-                                      Interval.intervalOf f13b (min (teet * 2) maxFlightTime)
-```
-
-Instances of class `Identity` are identifiable as flights.
-To be identifiable as a flight, an entity must have a `FlightTime`.
-
-```lean
-class Identity (α : Type) [FlightTime α] where
-  idOf : α → FlightId
 ```
 
 ## Filed Flight Plan: FPL
@@ -111,10 +38,6 @@ structure FPL where
   inv₁₂ : f16_f18_dle f16.f16b f18
 ```
 
-Note there are many constraints to which the FPL data must adhere. This is a good example
-of how dependent types allow constraints to be packaged with the data elements to give
-a precise characterisation. The constraints are as defined in `FPL.Field`.
-
 The flight time derived from a FPL.
 
 ```lean
@@ -127,6 +50,13 @@ Flight identification derived from a FPL.
 ```lean
 instance : Identity FPL where
   idOf fpl := ⟨fpl.f7.f7a, fpl.f13.f13a, FlightTime.period fpl⟩
+```
+
+Flight generated from a FPL.
+
+```lean
+instance : ToFlight FPL where
+  toFlight fpl := ⟨.filed, fpl.f7, fpl.f8, fpl.f9, fpl.f10, fpl.f13, fpl.f15, fpl.f16, none, fpl.f18, sorry⟩
 ```
 
 ## Modification: CHG

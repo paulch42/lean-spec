@@ -76,7 +76,8 @@ The model and program specification are contained in four modules:
 | - | - |
 | [Core](FPL/Core.md)       | The core data elements from which higher level entities are built |
 | [Field](FPL/Field.md)     | The fields from which the messages are assembled |
-| [Message](FPL/Message.md) | The various messages employed for flight planning purposes (__in progress__) |
+| [Flight](FPL/Flight.md)   | Data entity capturing all information on a flight |
+| [Message](FPL/Message.md) | The various messages employed for flight planning purposes |
 | [Process](FPL/Process.md) | The processing of messages with respect to a state (__in progress__) |
 
 Note these modules depend on the general purpose definitions in `lib.Util`, `lib.Geo` and `lib.Temporal`.
