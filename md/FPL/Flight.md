@@ -137,9 +137,6 @@ structure Flight where
            f16_f17_dest f16.f16a f17 ∧
            -- field 17 is populated if and only if the flight is completed
            f17.isSome ↔ status = .completed
-
---instance : DecidableEq Flight :=
---  fun _ => sorry
 ```
 
 Note there are many constraints to which the flight data must adhere. This is a good example

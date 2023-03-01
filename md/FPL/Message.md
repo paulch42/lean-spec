@@ -15,7 +15,7 @@ namespace FPL
 Instances of class `IsConsistent` have a method that determines if the instance is consistent with a flight.
 
 ```lean
-class IsConsistent (α : Type) [DecidableEq α] (_ : Flight) where
+class IsConsistent (α : Type) (_ : Flight) where
   isConsistent : α → Prop
 ```
 
@@ -78,9 +78,6 @@ structure CHG where
   f13 : Field13
   f16 : Field16a
   f22 : Field22
-
-instance : DecidableEq CHG :=
-  fun _ => sorry
 ```
 
 The flight time derived from a CHG.
@@ -240,9 +237,6 @@ inductive Message
   | dla (_ : DLA)
   | dep (_ : DEP)
   | arr (_ : ARR)
-
-instance : DecidableEq Message :=
-  fun _ => sorry
 ```
 
 The flight time derived from a message.
@@ -276,9 +270,9 @@ CHG is the only message that may not be consistent.
 
 ```lean
 open IsConsistent in
-instance (f : Flight) : IsConsistent Message f where
-  isConsistent | .chg x => isConsistent f x
-               | _      => True
+instance (flt : Flight) : IsConsistent Message flt where
+  isConsistent | .chg chg => isConsistent flt chg
+               | _        => True
 
 end FPL
 ```

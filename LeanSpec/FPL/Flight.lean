@@ -129,9 +129,6 @@ structure Flight where
            -- field 17 is populated if and only if the flight is completed
            f17.isSome ↔ status = .completed
 
---instance : DecidableEq Flight :=
---  fun _ => sorry
-
 /-
 Note there are many constraints to which the flight data must adhere. This is a good example
 of how dependent types allow constraints to be packaged with the data elements to give

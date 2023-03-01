@@ -157,18 +157,27 @@ def ProcessMod (ref : DTG) (msg : Message) (pre : State) (modFlight : Flight →
                      match pre.activeMatch (Identity.idOf msg) with
                      | -- single matching flight
                        .cons fid fh .nil =>
-                              match checkConsistent fh msg ref with
-                              | none =>
+                              let inSeq := -- Is the message temporally sequenced wrt matching flight
+                                           ref > (fh.history.head fh.inv₁).timestamp
+                              let consistent := -- is the message consistent wrt matching flight
+                                                IsConsistent.isConsistent fh.flight msg
+                              (inSeq ∧ consistent → 
                                   -- update active store
                                   activeXform pre.active post.active fh ref msg ∧
                                   -- no change to failed messages
-                                  post.failed = pre.failed
-                              | some reason =>
+                                  post.failed = pre.failed) ∧
+                              (inSeq ∧ ¬ consistent →
                                   -- no change to active store
                                   post.active = pre.active ∧
                                   -- add received message to failed messages
                                   ∀f, f ∈ post.failed ↔ f ∈ pre.failed ∨
-                                                        f = ⟨⟨ref, msg⟩, reason, [fid]⟩
+                                                        f = ⟨⟨ref, msg⟩, .inconsistent, [fid]⟩) ∧
+                              (¬ inSeq →
+                                  -- no change to active store
+                                  post.active = pre.active ∧
+                                  -- add received message to failed messages
+                                  ∀f, f ∈ post.failed ↔ f ∈ pre.failed ∨
+                                                        f = ⟨⟨ref, msg⟩, .outOfSequence, [fid]⟩)
                      | -- no or multiple matching flights
                        fs  => -- no change to active store
                               post.active = pre.active ∧
@@ -177,17 +186,7 @@ def ProcessMod (ref : DTG) (msg : Message) (pre : State) (modFlight : Flight →
                                                     f = ⟨⟨ref, msg⟩, .badMatch, fs.domain⟩) ∧
                     -- no change to inactive flights
                     post.inactive = pre.inactive }
-  where checkConsistent (fh : FlightHistory) (msg : Message) (ref : DTG) : Option FailureReason :=
-          if -- message not consistent with the matching flight
-            ¬ IsConsistent.isConsistent fh.flight msg then
-            some .inconsistent
-          else
-          if -- new message not received later than previous message
-            ref ≤ (fh.history.head fh.inv₁).timestamp then
-            some .outOfSequence
-          else
-            none
-        -- transformation of active store from pre to post state
+  where -- relationship between pre and post state when a new flight is added
         activeXform (pre post : FlightStore) (hist : FlightHistory) (ref : DTG) (msg : Message) :=
           ∀ flt, flt ∈ post ↔ let idOfMsg := Identity.idOf msg
                               if flt.1.match idOfMsg then
