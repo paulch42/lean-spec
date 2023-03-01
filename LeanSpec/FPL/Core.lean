@@ -81,6 +81,7 @@ inductive SpecialHandling
   | nonrvsm
   | sar
   | state
+deriving DecidableEq
 
 /-
 ## Aircraft Related
@@ -134,6 +135,7 @@ inductive AircraftPerformance
   | d
   | e
   | h
+deriving DecidableEq
 
 /-
 The wake turbulence category indicates the disturbance of the air caused by the aircraft,
@@ -143,6 +145,7 @@ inductive WakeTurbulenceCategory
   | h  -- high
   | m  -- medium
   | l  -- low
+deriving DecidableEq
 
 /-
 ## Distance: Horizontal and Vertical
@@ -152,6 +155,7 @@ Vertical distance may be expressed in metric or imperial measures.
 inductive UnitOfVerticalDistance 
   | feet
   | metres
+deriving DecidableEq
 
 /-
 Vertical distance may be expressed as a flight level (above the transition level)
@@ -160,6 +164,7 @@ or an altitude (below the transition level).
 inductive FlightLevelOrAltitude
   | flightLevel
   | altitude
+deriving DecidableEq
 
 /-
 Expression of the vertical position of an aircraft.
@@ -191,6 +196,7 @@ inductive UnitOfSpeed
   | kt
   | kph
   | mach
+deriving DecidableEq
 
 /-
 Speed can be:
@@ -202,6 +208,7 @@ inductive SpeedDatum
   | tas
   | ias
   | gspd
+deriving DecidableEq
 
 /-
 Aircraft speed is a value with respect to a unit of measurement and a datum.
@@ -231,6 +238,7 @@ deriving DecidableEq
 A waypoint is a named point used for identifying the path an aircraft follows.
 -/
 def Waypoint := Str 2 5
+deriving DecidableEq
 
 /-
 A relative point is a point indicated by its bearing and distance from a known point.
@@ -329,6 +337,7 @@ inductive CommNavAppCode
   | x
   | y
   | z
+deriving DecidableEq
 
 /-
 Surveillance equipment and capabilities.
@@ -351,6 +360,7 @@ inductive SurveillanceCode
   | v2
   | d1
   | g1
+deriving DecidableEq
 
 /-
 Performance Based Navigation (PBN) codes.
@@ -380,6 +390,7 @@ inductive PBNCode
   | s2
   | t1
   | t2
+deriving DecidableEq
 
 /-
 Selective Calling (SELCAL) code.

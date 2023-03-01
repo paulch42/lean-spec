@@ -69,7 +69,8 @@ The specification is concerned with the processing of flight plan and related me
 - definition of invariants on the messages, which primarily capture consistency constraints between the different fields;
 - the definition of a state that models a collection of flight information that might be held by a system;
 - given a state and a received message, the specification of how a revised state is created from the supplied state and the message;
-- some maintenance activities on the state. 
+- some maintenance activities on the state;
+- querying the state.
 
 The model and program specification are contained in four modules:
 
@@ -79,7 +80,7 @@ The model and program specification are contained in four modules:
 | [Field](FPL/Field.md)     | The fields from which the messages are assembled |
 | [Flight](FPL/Flight.md)   | Data entity capturing all information on a flight |
 | [Message](FPL/Message.md) | The various messages employed for flight planning purposes |
-| [Process](FPL/Process.md) | The processing of messages with respect to a state (__in progress__) |
+| [State](FPL/State.md)     | The processing of messages with respect to a state |
 
-Note these modules depend on the general purpose definitions in `lib.Util`, `lib.Geo` and `lib.Temporal`.
+These modules depend on the general purpose definitions in `lib.Util`, `lib.Geo` and `lib.Temporal`.
 -/

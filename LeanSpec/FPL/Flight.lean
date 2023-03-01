@@ -116,18 +116,21 @@ structure Flight where
   inv    : f8_f15_level f8 f15 ∧
            f8_f15_frul f8 f15 ∧
            f9_f18_typ f9 f18 ∧
-           f10_f18_rvsm f10 f18 ∧
+           f10_f18_sts f10 f18 ∧
            f10_f18_pbn f10 f18 ∧
            f10_f18_z f10 f18 ∧
-           f13_f18_dep f13.f13a f18 ∧
-           f15_f18_dle f15.f15c f18 ∧
-           f16_f18_dest f16.f16a f18 ∧
-           f16_f18_altn f16.f16c f18 ∧
-           f16_f18_eet f16.f16b f18 ∧
-           f16_f18_dle f16.f16b f18 ∧
+           f13_f18_dep f13 f18 ∧
+           f15_f18_dle f15 f18 ∧
+           f16_f18_dest f16 f18 ∧
+           f16_f18_altn f16 f18 ∧
+           f16_f18_eet f16 f18 ∧
+           f16_f18_dle f16 f18 ∧
            f16_f17_dest f16.f16a f17 ∧
            -- field 17 is populated if and only if the flight is completed
            f17.isSome ↔ status = .completed
+
+--instance : DecidableEq Flight :=
+--  fun _ => sorry
 
 /-
 Note there are many constraints to which the flight data must adhere. This is a good example

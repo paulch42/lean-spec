@@ -1,6 +1,4 @@
 /build
 /lake-packages/*
 /tmp
-/LeanSpec/FPL/Process.lean
-/md/FPL/Process.md
 /Conclusion.md

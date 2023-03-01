@@ -10,6 +10,14 @@ open Temporal Core FPL.Field
 namespace FPL
 
 /-
+## IsConsistent
+
+Instances of class `IsConsistent` have a method that determines if the instance is consistent with a flight.
+-/
+class IsConsistent (α : Type) [DecidableEq α] (_ : Flight) where
+  isConsistent : α → Prop
+
+/-
 ## Filed Flight Plan: FPL
 
 The content and constraints of a FPL (filed flight plan) message.
@@ -26,15 +34,15 @@ structure FPL where
   inv₁  : f8_f15_level f8 f15
   inv₂  : f8_f15_frul f8 f15
   inv₃  : f9_f18_typ f9 f18
-  inv₄  : f10_f18_rvsm f10 f18
+  inv₄  : f10_f18_sts f10 f18
   inv₅  : f10_f18_pbn f10 f18
   inv₆  : f10_f18_z f10 f18
-  inv₇  : f13_f18_dep f13.f13a f18
-  inv₈  : f15_f18_dle f15.f15c f18
-  inv₉  : f16_f18_dest f16.f16a f18
-  inv₁₀ : f16_f18_altn f16.f16c f18
-  inv₁₁ : f16_f18_eet f16.f16b f18
-  inv₁₂ : f16_f18_dle f16.f16b f18
+  inv₇  : f13_f18_dep f13 f18
+  inv₈  : f15_f18_dle f15 f18
+  inv₉  : f16_f18_dest f16 f18
+  inv₁₀ : f16_f18_altn f16 f18
+  inv₁₁ : f16_f18_eet f16 f18
+  inv₁₂ : f16_f18_dle f16 f18
 
 /-
 The flight time derived from a FPL.
@@ -65,6 +73,9 @@ structure CHG where
   f16 : Field16a
   f22 : Field22
 
+instance : DecidableEq CHG :=
+  fun _ => sorry
+
 /-
 The flight time derived from a CHG.
 -/
@@ -76,6 +87,30 @@ Flight identification derived from a CHG.
 -/
 instance : Identity CHG where
   idOf chg := ⟨chg.f7.f7a, chg.f13.f13a, FlightTime.period chg⟩ 
+
+/-
+Is a CHG consistent with the flight to which it is applied?
+-/
+def checkOpt (p : α → β → Prop) : Option α → Option β → Option α → Option β → Prop
+  | some a, some b, _, _    => p a b
+  | some a, none, _, some b => p a b
+  | none, some b, some a, _ => p a b
+  | _, _, _, _              => True
+
+instance (f : Flight) : IsConsistent CHG f where
+  isConsistent | {f22 := ⟨_,f8,f9,f10,f13,f15,f16,f18,_⟩, ..} =>
+                 checkOpt f8_f15_level f8 f15 f.f8 f.f15 ∧
+                 checkOpt f8_f15_frul f8 f15 f.f8 f.f15 ∧
+                 checkOpt f9_f18_typ f9 f18 f.f9 f.f18 ∧
+                 checkOpt f10_f18_sts f10 f18 f.f10 f.f18 ∧
+                 checkOpt f10_f18_pbn f10 f18 f.f10 f.f18 ∧
+                 checkOpt f10_f18_z f10 f18 f.f10 f.f18 ∧
+                 checkOpt f13_f18_dep f13 f18 f.f13 f.f18 ∧
+                 checkOpt f15_f18_dle f15 f18 f.f15 f.f18 ∧
+                 checkOpt f16_f18_dest f16 f18 f.f16 f.f18 ∧
+                 checkOpt f16_f18_eet f16 f18 f.f16 f.f18 ∧
+                 checkOpt f16_f18_dle f16 f18 f.f16 f.f18 ∧
+                 checkOpt f16_f18_altn f16 f18 f.f16 f.f18
 
 /-
 ## Cancellation: CNL
@@ -184,26 +219,40 @@ inductive Message
   | dep (_ : DEP)
   | arr (_ : ARR)
 
+instance : DecidableEq Message :=
+  fun _ => sorry
+
 /-
 The flight time derived from a message.
 -/
+open FlightTime in
 instance : FlightTime Message where
-  period | .fpl x => FlightTime.period x
-         | .chg x => FlightTime.period x
-         | .cnl x => FlightTime.period x
-         | .dla x => FlightTime.period x
-         | .dep x => FlightTime.period x
-         | .arr x => FlightTime.period x
+  period | .fpl x => period x
+         | .chg x => period x
+         | .cnl x => period x
+         | .dla x => period x
+         | .dep x => period x
+         | .arr x => period x
 
 /-
 Flight identification derived from a message.
 -/
+open Identity in
 instance : Identity Message where
-  idOf | .fpl x => Identity.idOf x
-       | .chg x => Identity.idOf x
-       | .cnl x => Identity.idOf x
-       | .dla x => Identity.idOf x
-       | .dep x => Identity.idOf x
-       | .arr x => Identity.idOf x
+  idOf | .fpl x => idOf x
+       | .chg x => idOf x
+       | .cnl x => idOf x
+       | .dla x => idOf x
+       | .dep x => idOf x
+       | .arr x => idOf x
+
+/-
+Is a message consistent with the flight to which it applies.
+CHG is the only message that may not be consistent.
+-/
+open IsConsistent in
+instance (f : Flight) : IsConsistent Message f where
+  isConsistent | .chg x => isConsistent f x
+               | _      => True
 
 end FPL

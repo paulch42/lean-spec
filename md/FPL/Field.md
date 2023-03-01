@@ -80,6 +80,14 @@ structure Field13 where
   f13b : DTG
 ```
 
+The designator in Field 13, if there is one.
+
+```lean
+def Field13.desigOf : Field13 → Option Doc7910.Designator
+  | ⟨some (.adep desig), _⟩ => desig
+  | _                       => none
+```
+
 ## Field 15: Route
 
 Field 15 describes the route the aircraft will follow to go from departure to destination.
@@ -422,7 +430,7 @@ def f9_f18_typ : Field9 → Option Field18 → Prop
 - Can't specify W (RVSM capable) in Field 10a and NONRVSM on Field 18 STS.
 
 ```lean
-def f10_f18_rvsm : Field10 → Option Field18 → Prop
+def f10_f18_sts : Field10 → Option Field18 → Prop
   | f10, some f18 => ¬ (.w ∈ f10.f10a ∧ .nonrvsm ∈ f18.sts)
   | _, _          => True
 ```
@@ -455,16 +463,16 @@ def f10_f18_z : Field10 → Option Field18 → Prop
 - If AFIL in field 13a, ATS unit in field 18 DEP.
 
 ```lean
-def f13_f18_dep : Option ADep → Option Field18 → Prop
+def f13_f18_dep : Field13 → Option Field18 → Prop
   | -- If designator in 13a, 18 DEP not populated
-    some (.adep _), none
-  | some (.adep _), some {dep := none, ..}
+    ⟨(some (.adep _)), _⟩, none
+  | ⟨some (.adep _), _⟩, some {dep := none, ..}
   | -- If ZZZZ in 13a, must have departure point in 18 DEP
-    none, some {dep := some (.inl _), ..}
+    ⟨none, _⟩, some {dep := some (.inl _), ..}
   | -- If AFIL in 13a, must have ATS unit in 18 DEP
-    some .afil, some {dep := some (.inr _), ..} => True
+    ⟨some .afil, _⟩, some {dep := some (.inr _), ..} => True
   | -- Any other combination is invalid
-    _, _                                        => False
+    _, _                                             => False
 ```
 
 ### Fields 15 and 18 (DLE)
@@ -472,9 +480,10 @@ def f13_f18_dep : Option ADep → Option Field18 → Prop
 - A delay point must be explicitly named in the route.
 
 ```lean
-def f15_f18_dle : Route → Option Field18 → Prop
-  | rte, some f18 => (f18.dle.map (·.point)) ⊆ rte.waypoints
-  | _, _          => True
+def f15_f18_dle : Field15 → Option Field18 → Prop
+  | ⟨_, _, rte⟩, some f18 => f18.dle.map (·.point) ⊆ rte.waypoints
+  -- ∀ w ∈ f18.dle.map (·.point), w ∈ rte.waypoints
+  | _, _                  => True
 ```
 
 ### Fields 16 and 18 (DEST)
@@ -483,14 +492,14 @@ def f15_f18_dle : Route → Option Field18 → Prop
 - If ZZZZ in field 16a, destination point in field 18 DEST.
 
 ```lean
-def f16_f18_dest : Field16a → Option Field18 → Prop
+def f16_f18_dest : Field16 → Option Field18 → Prop
   | -- If designator in 16a, 18 DEST not populated
-    some _, none
-  | some _, some {dest := none, ..}
+    {f16a := some _, ..}, none
+  | {f16a := some _, ..}, some {dest := none, ..}
   | -- If ZZZZ in 16a, must have destination point in 18 DEST
-    none, some {dest := some _, ..} => True
+    {f16a := none, ..}, some {dest := some _, ..} => True
   | -- Any other combination is invalid
-    _, _                            => False
+    _, _                                          => False
 ```
 
 ### Fields 16 and 18 (EET)
@@ -498,9 +507,9 @@ def f16_f18_dest : Field16a → Option Field18 → Prop
 - All EETs must be less than the flight duration.
 
 ```lean
-def f16_f18_eet : Duration → Option Field18 → Prop
-  | teet, some f18 => f18.eet.all (·.duration < teet)
-  | _, _           => True
+def f16_f18_eet : Field16 → Option Field18 → Prop
+  | {f16b := teet, ..}, some f18 => f18.eet.all (·.duration < teet)
+  | _, _                         => True
 ```
 
 ### Fields 16 and 18 (DLE)
@@ -508,9 +517,9 @@ def f16_f18_eet : Duration → Option Field18 → Prop
 - The sum of the delays at the route points must be less than the flight duration.
 
 ```lean
-def f16_f18_dle : Duration → Option Field18 → Prop
-  | teet, some f18 => (f18.dle.map (·.duration)).add 0 < teet
-  | _, _           => True
+def f16_f18_dle : Field16 → Option Field18 → Prop
+  | {f16b := teet, ..}, some f18 => (f18.dle.map (·.duration)).add 0 < teet
+  | _, _                         => True
 ```
 
 ### Fields 16 and 18 (ALTN)
@@ -518,8 +527,8 @@ def f16_f18_dle : Duration → Option Field18 → Prop
 - For each ZZZZ entry in Field 16c, there must be a corresponding entry in Field 18 ALTN.
 
 ```lean
-def f16_f18_altn (f16c : List Field16a) (f18 : Option Field18) : Prop :=
-  let numAltnZ := (f16c.filter (·.isNone)).length
+def f16_f18_altn (f16 : Field16) (f18 : Option Field18) : Prop :=
+  let numAltnZ := (f16.f16c.filter (·.isNone)).length
   match f18 with
   | some f18 => f18.altn.length = numAltnZ
   | _        => numAltnZ = 0
