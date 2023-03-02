@@ -238,7 +238,6 @@ deriving DecidableEq
 A waypoint is a named point used for identifying the path an aircraft follows.
 -/
 def Waypoint := Str 2 5
-deriving DecidableEq
 
 /-
 A relative point is a point indicated by its bearing and distance from a known point.

@@ -60,12 +60,27 @@ structure FlightHistory where
             history.descendingStrict
 ```
 
+The flight time derived from a flight history.
+
+```lean
+instance : FlightTime FlightHistory where
+  period fhist := FlightTime.period fhist.flight
+```
+
+Flight identification derived from a flight history.
+
+```lean
+instance : Identity FlightHistory where
+  idOf fhist := Identity.idOf fhist.flight
+```
+
 ## Flight Store
 
 A flight store is a mapping from flight identifiers to historical information about the flight.
 
 ```lean
-abbrev FlightStore := FlightId ⟹ FlightHistory
+def FlightStore := FlightId ⟹ FlightHistory
+deriving Membership
 ```
 
 ## Failed Messages
@@ -80,7 +95,7 @@ inductive FailureReason
   | inconsistent   -- the content of the message, if applied, would be inconsistent
 ```
 
-The information maintained about a received message that failed to match.
+The information maintained about a received message that failed to process.
 
 ```lean
 structure FailedMessage where
@@ -139,77 +154,78 @@ def activeFlights (state : State) : List Flight :=
 
 ## Message Processing
 
+Relationship between the pre and post state when a message cannot be processed.
+
+```lean
+def failure (pre post : State) (ref : DTG) (msg : Message) (reason : FailureReason) (fids : List FlightId) :=
+  -- no change to active flights
+  post.active = pre.active ∧
+  -- no change to inactive flights
+  post.inactive = pre.inactive ∧ 
+  -- received message added to failed messages
+  (∀f, f ∈ post.failed ↔ f ∈ pre.failed ∨ f = ⟨⟨ref, msg⟩, reason, fids⟩)
+```
+
+Relationship between the pre and post state when a message causes a new flight to be added.
+
+```lean
+def added (pre post : State) (ref : DTG) (msg : Message) (flight : Flight):=
+  -- new flight added to active store
+  (∀ flt, flt ∈ post.active ↔ flt ∈ pre.active ∨ (flt.1 = Identity.idOf flt.2 ∧
+                                                  flt.2.flight = flight ∧
+                                                  flt.2.history = [⟨ref, msg⟩])) ∧
+  -- no change to inactive flights
+  post.inactive = pre.inactive ∧
+  -- no change to failed messages
+  post.failed = pre.failed
+```
+
 Process a message that, if successful, adds a new flight to the state.
 
 ```lean
 def ProcessAdd (ref : DTG) (msg : Message) (pre : State) (newFlight : Flight) :=
-  { post : State // (-- match received message against active flights
-                     match pre.activeMatchId (Identity.idOf msg) with 
-                     | -- no matching flight
-                       [] => -- create new flight from message
-                             (∀ flt, flt ∈ post.active ↔ flt ∈ pre.active ∨
-                                                         (flt.1 = Identity.idOf msg ∧
-                                                          flt.2.flight = newFlight ∧
-                                                          flt.2.history = [⟨ref, msg⟩])) ∧
-                             -- no change to failed messages
-                             post.failed = pre.failed
-                     | -- one or more matching flights
-                       fs => -- no change to active store
-                             post.active = pre.active ∧
-                             -- add received message to failed messages
-                             ∀ f, f ∈ post.failed ↔ f ∈ pre.failed ∨ f = ⟨⟨ref, msg⟩, .badMatch, fs⟩) ∧
-                    -- no change to inactive flights
-                    post.inactive = pre.inactive }
-```
+  { post : State // -- match received message against active flights
+                    match pre.activeMatchId (Identity.idOf msg) with 
+                    | -- no matching flight
+                      [] => -- new flight added to active store
+                            added pre post ref msg newFlight
+                    | -- one or more matching flights
+                      fs => failure pre post ref msg .badMatch fs }
 
-Process a message that, if successful, modifies an existing flight in the state.
-
-```lean
+-- Process a message that, if successful, modifies an existing flight in the state.
+-- (This should be a block comment but `lean2md` aborts claiming nested comment.)
 def ProcessMod (ref : DTG) (msg : Message) (pre : State) (modFlight : Flight → Flight) :=
-  { post : State // (-- match received message against active flights
-                     match pre.activeMatch (Identity.idOf msg) with
-                     | -- single matching flight
-                       .cons fid fh .nil =>
-                              let inSeq := -- Is the message temporally sequenced wrt matching flight
-                                           ref > (fh.history.head fh.inv₁).timestamp
-                              let consistent := -- is the message consistent wrt matching flight
-                                                IsConsistent.isConsistent fh.flight msg
-                              (inSeq ∧ consistent → 
-                                  -- update active store
-                                  activeXform pre.active post.active fh ref msg ∧
-                                  -- no change to failed messages
-                                  post.failed = pre.failed) ∧
-                              (inSeq ∧ ¬ consistent →
-                                  -- no change to active store
-                                  post.active = pre.active ∧
-                                  -- add received message to failed messages
-                                  ∀f, f ∈ post.failed ↔ f ∈ pre.failed ∨
-                                                        f = ⟨⟨ref, msg⟩, .inconsistent, [fid]⟩) ∧
-                              (¬ inSeq →
-                                  -- no change to active store
-                                  post.active = pre.active ∧
-                                  -- add received message to failed messages
-                                  ∀f, f ∈ post.failed ↔ f ∈ pre.failed ∨
-                                                        f = ⟨⟨ref, msg⟩, .outOfSequence, [fid]⟩)
-                     | -- no or multiple matching flights
-                       fs  => -- no change to active store
-                              post.active = pre.active ∧
-                              -- add received message to failed messages
-                              ∀f, f ∈ post.failed ↔ f ∈ pre.failed ∨
-                                                    f = ⟨⟨ref, msg⟩, .badMatch, fs.domain⟩) ∧
-                    -- no change to inactive flights
-                    post.inactive = pre.inactive }
-  where -- relationship between pre and post state when a new flight is added
-        activeXform (pre post : FlightStore) (hist : FlightHistory) (ref : DTG) (msg : Message) :=
-          ∀ flt, flt ∈ post ↔ let idOfMsg := Identity.idOf msg
-                              if flt.1.match idOfMsg then
-                                -- revised entry for matching flight
-                                flt.1 = idOfMsg ∧
-                                flt.2.flight = modFlight hist.flight ∧
-                                flt.2.history = ⟨ref, msg⟩ :: hist.history
-                              else
-                                -- non-matching flights are unchanged
-                                flt ∈ pre
+  { post : State // -- match received message against active flights
+                    match pre.activeMatch (Identity.idOf msg) with
+                    | -- single matching flight
+                      .cons fid fh .nil =>
+                            let inSeq := -- is the message temporally sequenced wrt matching flight
+                                         ref > (fh.history.head fh.inv₁).timestamp
+                            let consistent := -- is the message consistent wrt matching flight
+                                              IsConsistent.isConsistent fh.flight msg
+                            (inSeq ∧ consistent → 
+                               updated pre post fh msg) ∧
+                            (inSeq ∧ ¬ consistent →
+                               failure pre post ref msg .inconsistent [fid]) ∧
+                            (¬ inSeq →
+                               failure pre post ref msg .outOfSequence [fid])
+                    | -- no or multiple matching flights
+                      fs  => failure pre post ref msg .badMatch fs.domain }
+
+  where -- relationship between pre and post state for successful message update
+        updated (pre post : State) (prehist : FlightHistory) (msg : Message) :=
+          ∀ flt, flt ∈ post.active ↔ xformFlight pre prehist msg flt ∧
+          post.inactive = pre.inactive ∧ 
+          post.failed = pre.failed
+
+        -- relationship between a flight and its transformation under a message
+        xformFlight (pre : State) (prehist : FlightHistory) (msg : Message)
+                    (flt : FlightId × FlightHistory) :=
+          let isMatch := flt.1.match (Identity.idOf msg)
+          (isMatch ↔ flt.1 = Identity.idOf flt.2 ∧
+                     flt.2.flight = modFlight prehist.flight ∧
+                     flt.2.history = ⟨ref, msg⟩ :: prehist.history) ∧
+          (¬ isMatch ↔ flt ∈ pre.active)
 ```
 
 The `Flight` created from a `FPL`.
