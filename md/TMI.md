@@ -403,6 +403,13 @@ satisfy the new requirement.
 in which no flights are specified. That is, `flights : FlightId ⟹ FlightDeparture` is the empty map.
 Is a solution that meets the specification still possible?
 
+- Another boundary case is when no runways rates are specified. That is, `rates : RunwayRates` is
+the empty map. Is a solution that meets the specification still possible? Is there any relationship
+between this and the `flights` item?
+
+- What is the impact on the specification if the constraint `inv₁ : canUse ≠ ∅` on type
+`FlightDeparture` is removed?
+
 - An alternative approach to evaluation of cost is to maximise the number of
 passengers that are able to depart during the TMI. Modify the specification to
 implement this approach to cost. Hint: you will have to change `FlightDeparture`.

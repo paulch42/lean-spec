@@ -1,11 +1,12 @@
 # Flight Planning
 
-This example is somewhat larger than the previous examples and is in many ways more typical of the
+This example is significantly larger than the previous examples and is in many ways more typical of the
 type of system that would be encountered in industry. It is characterised by:
 - a state of information on flights is held;
 - messages are received concerning new and existing flights;
 - the state is updated based on the content of the received messages;
-- maintenance is performed on the state to, for example, remove expired entries.
+- maintenance is performed on the state to, for example, remove expired entries;
+- the state is queried for information.
 
 ## Background
 
@@ -64,14 +65,14 @@ the purpose of the message. In the above FPL, those fields are:
 
 The specification is concerned with the processing of flight plan and related messages, and consists of:
 
-- a model of the data elements, fields, and messages;
-- definition of invariants on the messages, which primarily capture consistency constraints between the different fields;
+- a model of the data elements, fields, flights and messages;
+- definition of invariants on the flights and messages, which primarily capture consistency constraints between the different fields;
 - the definition of a state that models a collection of flight information that might be held by a system;
 - given a state and a received message, the specification of how a revised state is created from the supplied state and the message;
 - some maintenance activities on the state;
 - querying the state.
 
-The model and program specification are contained in four modules:
+The model and program specification are contained in five modules:
 
 | Module | Purpose |
 | - | - |

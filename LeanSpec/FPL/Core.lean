@@ -28,6 +28,12 @@ def FreeText := Str 1 maxTextLength
 
 Definitions that relate to the flight that is the subject of a message.
 
+The identifier used by air traffic control to identify the flight.
+-/
+def AircraftIdentification := Str 2 7
+deriving DecidableEq
+
+/-
 The SSR (Secondary Surveillance Radar) is a code of four octal characters that is
 used to communicate with and track the flight. It is typically allocated by air
 traffic control shortly before take off.
@@ -62,6 +68,7 @@ inductive TypeOfFlight
   | g  -- General Aviation (GA)
   | m  -- Military
   | x  -- Other
+deriving DecidableEq
 
 /-
 Some flights receive special handling by air traffic control due to their nature.
@@ -91,22 +98,16 @@ distinction between _flight_ and _aircraft_: _flight_ is the operation between
 departure and destination that transports passengers and/or freight, _aircraft_ is
 the physical airframe that carries the passengers and/or freight.
 
-The identifier used by air traffic control to identify the flight.
--/
-def AircraftIdentification := Str 2 7
-deriving DecidableEq
-
-/-
-The registration identifies the physical aircraft as agreed with the authorising body.
+The registration identifies the physical aircraft as allocated by the authorising body.
 It appears as the tail markings on an aircraft. For GA flights, the aircraft identification
 is often the registration mark.
 -/
-def Registration := Str 2 10 -- Correct length?
+def Registration := Str 2 7
 
 /-
 The number of aircraft that participate if the flight is a formation.
 -/
-def NumberOfAircraft := NatMN 2 100
+def NumberOfAircraft := NatMN 2 99
 
 /-
 An aircraft type identifies the type of aircraft. For example, _A388_ is the type
@@ -255,9 +256,9 @@ Position can be expressed by:
 - a relative point.
 -/
 inductive Position
-  | geo (_ : Geo.Point) : Position
-  | wpt (_ : Waypoint) : Position
-  | rel (_ : RelativePoint) : Position
+  | geo (_ : Geo.Point)
+  | wpt (_ : Waypoint)
+  | rel (_ : RelativePoint)
 
 /-
 The named waypoint in a position (if there is one).
@@ -288,8 +289,9 @@ def Doc7910.FIRDesignator := Str 4 4
 /-
 ## Equipment and Capabilities
 
-Encode the communication, navigation and surveillance equipment held by aircraft
-and the capabilities of the equipment.
+The communication, navigation and surveillance equipment held by aircraft
+and the capabilities of the equipment are identified by codes documented
+in PANS-ATM.
 
 Communication, navigation and approach aid equipment and capabilities.
 -/

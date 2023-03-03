@@ -132,30 +132,6 @@ def consecutivePairs : List α → List (α × α)
 end List
 ```
 
-## Sum
-
-```lean
-namespace Sum
-```
-
-Is a left injection.
-
-```lean
-def isl : α ⊕ β → Bool
-  | inl _ => true
-  | inr _ => false
-```
-
-Is a right injection.
-
-```lean
-def isr : α ⊕ β → Bool
-  | inl _ => false
-  | inr _ => true
-
-end Sum
-```
-
 ## AssocList
 
 Elements of type `AssocList` are lists whose elements are key/value pairs.

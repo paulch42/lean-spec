@@ -52,7 +52,7 @@ and limitations placed on the flight.
 structure Field10 where
   f10a : List CommNavAppCode    -- empty list indicates `N`
   f10b : List SurveillanceCode  -- empty list indicates `N`
-  -- Exclude invalid combinations
+  -- Exclude invalid combinations.
   inv₁ : ¬ (.b1 ∈ f10b ∧ .b2 ∈ f10b)
   inv₂ : ¬ (.u1 ∈ f10b ∧ .u2 ∈ f10b)
   inv₃ : ¬ (.v1 ∈ f10b ∧ .v2 ∈ f10b)
@@ -63,10 +63,10 @@ structure Field10 where
 Field 13 concerns the departure point and departure time of the flight.
 
 A flight plan can be filed in the air, in which case AFIL is specified in the
-departure aerodrome field.
+departure point field.
 -/
 inductive ADep
-  | adep (_ : Doc7910.Designator) : ADep
+  | adep (_ : Doc7910.Designator)
   | afil
 deriving DecidableEq
 
@@ -93,7 +93,7 @@ Climbing between two levels, the upper limit can be specified, or _PLUS_ used to
 indicate there is no nominated upper level.
 -/
 inductive UpperLevel
-  | level (_ : VerticalPositionOfAircraft) : UpperLevel
+  | level (_ : VerticalPositionOfAircraft)
   | plus
 
 /-
@@ -126,8 +126,8 @@ the next element. Either, but not both, may be omitted.
 structure RouteElement where
   point : Option RoutePoint
   rte   : Option RouteConnector
-  inv   : -- at least one of point or connecting route must be populated
-          ¬ (point.isNone ∧ rte.isNone)
+  -- At least one of point or connecting route must be populated.
+  inv   : ¬ (point.isNone ∧ rte.isNone)
 
 /-
 The named waypoint in a route element, if there is one.
@@ -164,7 +164,7 @@ inductive Truncate | t
 
 /-
 The route consists of:
-- optional standard instrument departure (SID)
+- optional standard instrument departure (SID);
 - the non-empty list of elements;
 - optional standard arrival route (STAR) or truncation indicator.
 -/
@@ -172,16 +172,16 @@ structure Route where
   sid            : Option RouteDesignator
   elements       : List RouteElement
   starOrTruncate : Option (RouteDesignator ⊕ Truncate)
-  inv₁           : -- must be at least one route element
-                   elements ≠ ∅
-                   -- consecutive flight rules changes must be distinct
+  -- Must be at least one route element.
+  inv₁           : elements ≠ ∅
+  -- Consecutive flight rules changes must be distinct.
   inv₂           : let rules := (elements.map RouteElement.ruleOf).somes
                    rules.consecutivePairs.all (fun (x,y) => x ≠ y)
-  inv₃           : -- DCT must be followed by an explicit point
-                   elements.consecutivePairs.all
+  -- DCT must be followed by an explicit point.
+  inv₃           : elements.consecutivePairs.all
                      (fun (re₁,re₂) ↦ re₁.isDct → re₂.point.isSome)
-  inv₄             -- an ATS route designator must connect to another designator or a named point
-                 : elements.consecutivePairs.all
+  -- An ATS route designator must connect to another designator or a named point.
+  inv₄           : elements.consecutivePairs.all
                      (fun (re₁,re₂) ↦ re₁.atsRteOf.isSome →
                         re₂.waypointOf.isSome ∨ re₂.point.isNone ∧ re₂.atsRteOf.isSome)
 
@@ -205,24 +205,30 @@ structure Field15 where
 /-
 ## Field 16: Destination aerodrome and total estimated elapsed time, destination alternate aerodrome(s)
 
-Field 16 concerns the destination aerodrome, and alternate destinations in the event diversion is required.
+Field 16 concerns the destination aerodrome, the flight time, and alternate destinations in the event
+diversion is required.
 -/
-
-def Field16a := Option Doc7910.Designator  -- `none` indicates ZZZZ
+def Field16a := Option Doc7910.Designator  -- `none` indicates ZZZZ (refer field 18 DEST)
 
 /-
 Up to two alternates are allowed.
 -/
 def maxAlternateDestinations := 2
 
+/-
+Field 16 consists of:
+- the planned destination aerodrome;
+- the total estimated elapsed time (TEET); i.e. the estimated flight duration;
+- alternate destination aerodromes in case of a diversion.
+-/
 structure Field16 where
-  f16a : Field16a       -- planned destination aerodrome (refer field 18 DEST)
-  f16b : Duration       -- estimated flight time
-  f16c : List Field16a  -- alternate destinations in the case of diversion
-  inv₁ : -- TEET (flight duration) must be less than one day
-         f16b < Duration.oneDay
-  inv₂ : -- Upper limit on number of alternate aerodromes
-         f16c.length ≤ maxAlternateDestinations
+  f16a : Field16a
+  f16b : Duration
+  f16c : List Field16a
+  -- TEET must be less than one day.
+  inv₁ : f16b < Duration.oneDay
+  -- Upper limit on number of alternate aerodromes.
+  inv₂ : f16c.length ≤ maxAlternateDestinations
 
 /-
 Are a departure and destination aerodrome the same?
@@ -237,14 +243,19 @@ def adepIsAdes : Field13a → Field16a → Bool
 
 Field 17 concerns the actual arrival point and time, which will differ from the
 planned destination in the event of a diversion.
+
+Field 17 consists of:
+- the actual arrival aerodrome designator;
+- the actual arrival time;
+- the name of the arrival aerodrome, if it has no designator.
 -/
 
 structure Field17 where
-  f17a : Option Doc7910.Designator  -- actual arrival aerodrome, `none` indicates ZZZZ
-  f17b : DTG                        -- actual arrival time
-  f17c : Option FreeText            -- name of arrival aerodrome, if designator not known
-  inv  : -- Exactly one of designator and name must be populated
-         f17a.isNone ↔ f17c.isSome
+  f17a : Option Doc7910.Designator  -- `none` indicates ZZZZ
+  f17b : DTG
+  f17c : Option FreeText
+  -- Exactly one of designator and aerodrome name must be populated.
+  inv  : f17a.isNone ↔ f17c.isSome
 
 /-
 ## Field 18: Other information
@@ -252,7 +263,7 @@ structure Field17 where
 Field 18 contains diverse other information about the flight.
 
 The flight plan framework is presently undergoing major revision to benefit from the latest
-information management best practices. The extant flight plan format has been largely
+information management best practices. The extant flight plan format has largely remained
 unchanged for over 50 years. Allowed changes are limited by the the need for backwards
 compatibility. As a result, additional information has typically been added as extra
 data in field 18, with the result it is a rather disparate collection. It also means
@@ -286,7 +297,8 @@ instance (x y : ElapsedTimePoint) : Decidable (x < y) :=
 
 /-
 A point on the route where a delay occurs. The flight goes _off plan_ for
-the duration.
+the duration. An example is a law enforcement flight that intends to conduct
+covert operations and does not want to provide details of where it is flying.
 -/
 structure DelayPoint where
   point    : Waypoint
@@ -325,12 +337,12 @@ structure Field18 where
   talt : List LandingSite
   rif  : Option RouteToRevisedDestination
   rmk  : Option FreeText
-  inv₁ : -- Upper limit on number of PBN codes
-         pbn.length ≤ maxPbnCodes
-  inv₂ : -- Upper limit on number of alternate aerodromes
-         altn.length ≤ maxAlternateDestinations
-  inv₃ : -- EETs must be presented in ascending order
-         eet.ascendingStrict
+  -- Upper limit on number of PBN codes.
+  inv₁ : pbn.length ≤ maxPbnCodes
+  -- Upper limit on number of alternate aerodromes.
+  inv₂ : altn.length ≤ maxAlternateDestinations
+  -- EETs must be presented in ascending order.
+  inv₃ : eet.ascendingStrict
 
 /-
 ## Field 22: Amendment
@@ -348,8 +360,8 @@ structure Field22 where
   f15 : Option Field15
   f16 : Option Field16
   f18 : Option Field18
-  inv : -- At least one amendment must be specified
-        ¬ (f7.isNone ∧f8.isNone ∧ f9.isNone ∧ f10.isNone ∧ f13.isNone ∧ f15.isNone ∧ f16.isNone ∧ f18.isNone)
+  -- At least one amendment must be specified.
+  inv : ¬ (f7.isNone ∧f8.isNone ∧ f9.isNone ∧ f10.isNone ∧ f13.isNone ∧ f15.isNone ∧ f16.isNone ∧ f18.isNone)
 
 /-
 ## Consistency checks between fields
@@ -361,17 +373,18 @@ other fields.
 
 ### Fields 8 and 15 (requested level)
 
- - If requested level is VFR, initial flight rules must be V or Z.
+ - If initial requested cruising level is VFR, initial flight rules must be V or Z.
 -/
-def f8_f15_level (f8 : Field8) (f15 : Field15) : Prop :=
-  f15.f15b.isNone → f8.f8a ∈ [.v, .z]
+def f8_f15_level : Field8 → Field15 → Prop
+  | ⟨frul, _⟩, ⟨_, none, _⟩ => frul ∈ [.v, .z]
+  | _, _                    => True
 
 /-
 ### Fields 8 and 15 (flight rules)
 
 - Rule changes only allowed if initial rules is Y or Z.
-- If initial rules is Y, first change must be to VFR.
-- If initial rules is Z, first change must be to IFR.
+- If initial rules is Y (IFR first), first change must be to VFR.
+- If initial rules is Z (VFR first), first change must be to IFR.
 -/
 def f8_f15_frul (f8 : Field8) (f15 : Field15) : Prop :=
   match (f15.f15c.elements.map RouteElement.ruleOf).somes with
@@ -386,12 +399,12 @@ def f8_f15_frul (f8 : Field8) (f15 : Field15) : Prop :=
 - If ZZZZ in field 9b, aircraft type in field 18 TYP.
 -/
 def f9_f18_typ : Field9 → Option Field18 → Prop
-  | -- If designator in 9b, 18 TYP not populated
+  | -- If designator in 9b, 18 TYP not populated.
     {f9b := some _, ..}, none
   | {f9b := some _, ..}, some {typ := [], ..}
-  | -- If ZZZZ in 9b, must have aircraft type in 18 TYP
+  | -- If ZZZZ in 9b, must have aircraft type in 18 TYP.
     {f9b := none, ..}, some {typ := _::_, ..} => True
-  | -- Any other combination is invalid
+  | -- Any other combination is invalid.
     _, _                                      => False
 
 /-
@@ -410,7 +423,7 @@ def f10_f18_sts : Field10 → Option Field18 → Prop
 -/
 def f10_f18_pbn : Field10 → Option Field18 → Prop
   | f10, none     => .r ∉ f10.f10a
-  | f10, some f18 => .r ∈ f10.f10a → f18.pbn ≠ ∅ 
+  | f10, some f18 => .r ∈ f10.f10a ↔ f18.pbn ≠ ∅ 
 
 /-
 ### Fields 10 and 18 (COM/NAV/DAT)
@@ -430,14 +443,14 @@ def f10_f18_z : Field10 → Option Field18 → Prop
 - If AFIL in field 13a, ATS unit in field 18 DEP.
 -/
 def f13_f18_dep : Field13 → Option Field18 → Prop
-  | -- If designator in 13a, 18 DEP not populated
+  | -- If designator in 13a, 18 DEP not populated.
     ⟨(some (.adep _)), _⟩, none
   | ⟨some (.adep _), _⟩, some {dep := none, ..}
-  | -- If ZZZZ in 13a, must have departure point in 18 DEP
+  | -- If ZZZZ in 13a, must have departure point in 18 DEP.
     ⟨none, _⟩, some {dep := some (.inl _), ..}
-  | -- If AFIL in 13a, must have ATS unit in 18 DEP
+  | -- If AFIL in 13a, must have ATS unit in 18 DEP.
     ⟨some .afil, _⟩, some {dep := some (.inr _), ..} => True
-  | -- Any other combination is invalid
+  | -- Any other combination is invalid.
     _, _                                             => False
 
 /-
@@ -447,7 +460,6 @@ def f13_f18_dep : Field13 → Option Field18 → Prop
 -/
 def f15_f18_dle : Field15 → Option Field18 → Prop
   | ⟨_, _, rte⟩, some f18 => f18.dle.map (·.point) ⊆ rte.waypoints
-  -- ∀ w ∈ f18.dle.map (·.point), w ∈ rte.waypoints
   | _, _                  => True
 
 /-
@@ -457,12 +469,12 @@ def f15_f18_dle : Field15 → Option Field18 → Prop
 - If ZZZZ in field 16a, destination point in field 18 DEST.
 -/
 def f16_f18_dest : Field16 → Option Field18 → Prop
-  | -- If designator in 16a, 18 DEST not populated
+  | -- If designator in 16a, 18 DEST not populated.
     {f16a := some _, ..}, none
   | {f16a := some _, ..}, some {dest := none, ..}
-  | -- If ZZZZ in 16a, must have destination point in 18 DEST
+  | -- If ZZZZ in 16a, must have destination point in 18 DEST.
     {f16a := none, ..}, some {dest := some _, ..} => True
-  | -- Any other combination is invalid
+  | -- Any other combination is invalid.
     _, _                                          => False
 
 /-
@@ -488,11 +500,11 @@ def f16_f18_dle : Field16 → Option Field18 → Prop
 
 - For each ZZZZ entry in Field 16c, there must be a corresponding entry in Field 18 ALTN.
 -/
-def f16_f18_altn (f16 : Field16) (f18 : Option Field18) : Prop :=
-  let numAltnZ := (f16.f16c.filter (·.isNone)).length
-  match f18 with
-  | some f18 => f18.altn.length = numAltnZ
-  | _        => numAltnZ = 0
+def f16_f18_altn : Field16 → Option Field18 → Prop
+  | {f16c := [], ..}, none => True
+  | {f16c := altn16, ..}, some {altn := altn18, ..}
+                           => (altn16.filter (·.isNone)).length = altn18.length
+  | _, _                   => False
 
 /-
 ### Fields 16 and 17 (destination and arrival)

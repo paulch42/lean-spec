@@ -122,7 +122,7 @@ def FindPath₂ (g : Graph) (s e : Node) :=
 This at least accommodates the failure cases described above, but it has a trivial implementation that
 is not what is intended:
 -/
-def findPathImpl (g : Graph) (s e : Node) :
+def findPath (g : Graph) (s e : Node) :
   Option { p : Path g // pathStart p = s ∧ pathEnd p = e } := none
 
 /-

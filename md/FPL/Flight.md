@@ -14,7 +14,7 @@ namespace FPL
 
 ## Flight Identification
 
-The flight identifier is used for when matching received flight information against known flights. The match is based on:
+The flight identifier is used when matching received flight information against known flights. The match is based on:
 
 - Aircraft identification (field 7a).
 - Departure aerodrome (field 13a).
@@ -65,30 +65,30 @@ Estimated flight time based on departure time, estimated flight duration, and wh
 departure = destination.
 
 ```lean
-def adepAdesFlightTime : Field13a → DTG → Field16a → Option Duration → Interval
-  |  f13a, f13b, f16a, none      => -- flight duration not known
-                                    if adepIsAdes f13a f16a then
-                                      Interval.intervalOf f13b maxRoundTripTime
-                                    else
-                                      Interval.intervalOf f13b maxFlightTime
-  |  f13a, f13b, f16a, some teet => -- flight duration known
-                                    if adepIsAdes f13a f16a then
-                                      Interval.intervalOf f13b (min teet maxRoundTripTime)
-                                    else
-                                      Interval.intervalOf f13b (min (teet * 2) maxFlightTime)
+def adepAdesFlightTime (f13a : Field13a) (f13b : DTG) (f16a : Field16a) : Option Duration → Interval
+  | none      => -- flight duration not known
+                 if adepIsAdes f13a f16a then
+                   .intervalOf f13b maxRoundTripTime
+                 else
+                   .intervalOf f13b maxFlightTime
+  | some teet => -- flight duration known
+                 if adepIsAdes f13a f16a then
+                   .intervalOf f13b (min teet maxRoundTripTime)
+                 else
+                   .intervalOf f13b (min (teet * 2) maxFlightTime)
 ```
 
-Instances of class `Identity` are identifiable as flights.
-To be identifiable as a flight, an entity must have a `FlightTime`.
+Instances of class `IsFlight` are identifiable as being associated with flights. Specifically, a
+`FlightId` can be derived from the type. To be identifiable as a flight, an entity must have a `FlightTime`.
 
 ```lean
-class Identity (α : Type) [FlightTime α] where
+class IsFlight (α : Type) [FlightTime α] where
   idOf : α → FlightId
 ```
 
 ## Flight Status
 
-The status of a flight is based the state it has reached in its lifecycle.
+The status of a flight is based on the state it has reached in its lifecycle.
 
 ```lean
 inductive FlightStatus
@@ -102,7 +102,7 @@ inductive FlightStatus
 
 The information held on a flight is assembled from the messages received for the flight.
 Consequently a flight is defined as the combined fields that make up the messages, and
-the constraints between fields defined in `FPL.Field` ensure integrity of data.
+the constraints between fields defined in [FPL.Field](Field.md) ensure integrity of data.
 Field 22 is the exception; its purpose is to communicate changes, and those changes are
 incorporated in the other fields, hence it is excluded from `Flight`.
 
@@ -135,13 +135,13 @@ structure Flight where
            f16_f18_eet f16 f18 ∧
            f16_f18_dle f16 f18 ∧
            f16_f17_dest f16.f16a f17 ∧
-           -- field 17 is populated if and only if the flight is completed
+           -- Field 17 is populated if and only if the flight is completed.
            f17.isSome ↔ status = .completed
 ```
 
 Note there are many constraints to which the flight data must adhere. This is a good example
 of how dependent types allow constraints to be packaged with the data elements to give
-a precise characterisation. The constraints are as defined in `FPL.Field`.
+a precise characterisation. The constraints are as defined in [FPL.Field](Field.md).
 
 The flight time derived from a flight.
 
@@ -153,7 +153,7 @@ instance : FlightTime Flight where
 Flight identification derived from a flight.
 
 ```lean
-instance : Identity Flight where
+instance : IsFlight Flight where
   idOf flight := ⟨flight.f7.f7a, flight.f13.f13a, FlightTime.period flight⟩
 ```
 

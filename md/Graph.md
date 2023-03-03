@@ -133,7 +133,7 @@ This at least accommodates the failure cases described above, but it has a trivi
 is not what is intended:
 
 ```lean
-def findPathImpl (g : Graph) (s e : Node) :
+def findPath (g : Graph) (s e : Node) :
   Option { p : Path g // pathStart p = s ∧ pathEnd p = e } := none
 ```
 

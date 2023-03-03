@@ -53,11 +53,11 @@ instance : FlightTime FPL where
 /-
 Flight identification derived from a FPL.
 -/
-instance : Identity FPL where
+instance : IsFlight FPL where
   idOf fpl := ⟨fpl.f7.f7a, fpl.f13.f13a, FlightTime.period fpl⟩
 
 /-
-Flight generated from a FPL.
+Flight generated from a FPL. Most of the flight fields are identical to the corresponding FPL fields.
 -/
 instance : ToFlight FPL where
   toFlight fpl := ⟨.filed, fpl.f7, fpl.f8, fpl.f9, fpl.f10, fpl.f13, fpl.f15, fpl.f16, none, fpl.f18, sorry⟩
@@ -74,6 +74,8 @@ structure CHG where
   f22 : Field22
 
 /-
+Fields 7, 13 and 16 are used for matching, field 22 specifies the modification.
+
 The flight time derived from a CHG.
 -/
 instance : FlightTime CHG where
@@ -82,18 +84,16 @@ instance : FlightTime CHG where
 /-
 Flight identification derived from a CHG.
 -/
-instance : Identity CHG where
+instance : IsFlight CHG where
   idOf chg := ⟨chg.f7.f7a, chg.f13.f13a, FlightTime.period chg⟩ 
 
 /-
 Is a CHG consistent with the flight to which it is applied?
+The consistency checks are those defined in [FPL.Field](Field.md).
+If a field changes it must be checked for consistency with any related fields.
+If a related field is also in the CHG, check there, otherwise check against
+the related field in the flight.
 -/
-def checkOpt (p : α → β → Prop) : Option α → Option β → Option α → Option β → Prop
-  | some a, some b, _, _    => p a b
-  | some a, none, _, some b => p a b
-  | none, some b, some a, _ => p a b
-  | _, _, _, _              => True
-
 instance (f : Flight) : IsConsistent CHG f where
   isConsistent | {f22 := ⟨_,f8,f9,f10,f13,f15,f16,f18,_⟩, ..} =>
                  checkOpt f8_f15_level f8 f15 f.f8 f.f15 ∧
@@ -108,6 +108,11 @@ instance (f : Flight) : IsConsistent CHG f where
                  checkOpt f16_f18_eet f16 f18 f.f16 f.f18 ∧
                  checkOpt f16_f18_dle f16 f18 f.f16 f.f18 ∧
                  checkOpt f16_f18_altn f16 f18 f.f16 f.f18
+where checkOpt {α β : Type} (p : α → β → Prop) : Option α → Option β → Option α → Option β → Prop
+      | some chga, some chgb, _, _    => p chga chgb
+      | some chga, none, _, some fltb => p chga fltb
+      | none, some chgb, some flta, _ => p flta chgb
+      | _, _, _, _                    => True
 
 /-
 ## Cancellation: CNL
@@ -128,7 +133,7 @@ instance : FlightTime CNL where
 /-
 Flight identification derived from a CNL.
 -/
-instance : Identity CNL where
+instance : IsFlight CNL where
   idOf cnl := ⟨cnl.f7.f7a, cnl.f13.f13a, FlightTime.period cnl⟩ 
 
 /-
@@ -142,6 +147,8 @@ structure DLA where
   f16 : Field16a
 
 /-
+Field 13b contains the new estimated departure time.
+
 The flight time derived from a DLA.
 -/
 instance : FlightTime DLA where
@@ -150,7 +157,7 @@ instance : FlightTime DLA where
 /-
 Flight identification derived from a DLA.
 -/
-instance : Identity DLA where
+instance : IsFlight DLA where
   idOf dla := ⟨dla.f7.f7a, dla.f13.f13a, FlightTime.period dla⟩ 
 
 /-
@@ -164,6 +171,8 @@ structure DEP where
   f16 : Field16a
 
 /-
+Field 13b conatins the actual time of departure.
+
 The flight time derived from a DEP.
 -/
 instance : FlightTime DEP where
@@ -172,7 +181,7 @@ instance : FlightTime DEP where
 /-
 Flight identification derived from a DEP.
 -/
-instance : Identity DEP where
+instance : IsFlight DEP where
   idOf dep := ⟨dep.f7.f7a, dep.f13.f13a, FlightTime.period dep⟩ 
 
 /-
@@ -191,16 +200,20 @@ structure ARR where
 The flight time derived from an ARR.
 -/
 instance : FlightTime ARR where
-  period arr := let ades := -- use the planned destination if available, otherwise the actual arrival
+  period arr := let dest := -- Use the planned destination if available, otherwise the actual arrival.
                             match arr.f16, arr.f17.f17a with
-                            | none, aarr => aarr
-                            | parr, _    => parr
-                adepAdesFlightTime arr.f13.f13a arr.f13.f13b ades none
+                            | none, actual  => actual
+                            | planned, _    => planned
+                adepAdesFlightTime arr.f13.f13a arr.f13.f13b dest none
 
 /-
+The flight time is typically used to match the ARR with a flight. The original flight time
+was dervied from the planned destination, hence the planned destination (if available) is
+preferred over the actual arrival for flight time calculation.
+
 Flight identification derived from an ARR.
 -/
-instance : Identity ARR where
+instance : IsFlight ARR where
   idOf arr := ⟨arr.f7.f7a, arr.f13.f13a, FlightTime.period arr⟩ 
 
 /-
@@ -231,8 +244,8 @@ instance : FlightTime Message where
 /-
 Flight identification derived from a message.
 -/
-open Identity in
-instance : Identity Message where
+open IsFlight in
+instance : IsFlight Message where
   idOf | .fpl x => idOf x
        | .chg x => idOf x
        | .cnl x => idOf x
