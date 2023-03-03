@@ -161,7 +161,7 @@ Each relevant runway is mapped to the rate it can accommodate.
 abbrev RunwayRates := RunwayDesig ⟹ Rate
 ```
 
-Note: `A ⟹ B` is the type of finite maps from `A` to `B` (defined in `lib/Util`).
+Note: `A ⟹ B` is the type of finite maps from `A` to `B` (defined in [Util](lib/Util.md)).
 
 ### TMI Configuration
 

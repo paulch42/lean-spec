@@ -102,7 +102,7 @@ inductive FlightStatus
 
 The information held on a flight is assembled from the messages received for the flight.
 Consequently a flight is defined as the combined fields that make up the messages, and
-the constraints between fields defined in [FPL.Field](Field.md) ensure integrity of data.
+the constraints between fields defined in [Field](Field.md) ensure integrity of data.
 Field 22 is the exception; its purpose is to communicate changes, and those changes are
 incorporated in the other fields, hence it is excluded from `Flight`.
 
@@ -141,7 +141,7 @@ structure Flight where
 
 Note there are many constraints to which the flight data must adhere. This is a good example
 of how dependent types allow constraints to be packaged with the data elements to give
-a precise characterisation. The constraints are as defined in [FPL.Field](Field.md).
+a precise characterisation. The constraints are as defined in [Field](Field.md).
 
 The flight time derived from a flight.
 

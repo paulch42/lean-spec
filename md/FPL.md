@@ -82,4 +82,4 @@ The model and program specification are contained in five modules:
 | [Message](FPL/Message.md) | The various messages employed for flight planning purposes |
 | [State](FPL/State.md)     | The processing of messages with respect to a state |
 
-These modules depend on the general purpose definitions in `lib.Util`, `lib.Geo` and `lib.Temporal`.
+These modules depend on the general purpose definitions in [Util](lib/Util.md), [Geo](lib/Geo.md) and [Temporal](lib/Temporal.md).

@@ -84,7 +84,7 @@ over the graph `g`. The elements are:
 - `path` is the ordered list of edges that constitute the path;
 - `inv₁` states every edge in the path is also in the graph;
 - `inv₂` states that given two consecutive edges, the end node of the first is the start node
-of the second. (Refer to function `consecutivePairs` defined in `lib/Util`.)
+of the second. (Refer to function `consecutivePairs` defined in [Util](lib/Util.md).)
 
 Notes:
 - The fields named `inv`, possibly subscripted, specify invariants. That is, they

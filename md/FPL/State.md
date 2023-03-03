@@ -1,6 +1,6 @@
 # State Management
 
-The [Core](Core.md), [Field](Field.md), [Flight](Flgiht.md) and [Message](Message.md) modules
+The [Core](Core.md), [Field](Field.md), [Flight](Flight.md) and [Message](Message.md) modules
 capture the content, structure and constraints of flight information and the messages used to
 communicate information about the flights. This module models the processing of flight plan
 messages with respect to a state of flights. The specification consists of:
