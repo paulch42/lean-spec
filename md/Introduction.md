@@ -159,9 +159,7 @@ def double (n : Nat) : { m : Nat // m = 2 * n } :=
 ```
 
 The result is the number (`val`) and evidence the number is twice the argument
-(`property`, where the evidence here is simply shown by reflexivity).
-
-In some situations Lean can coerce, automatically, an element of the subtype to
+(`property`, where the evidence here is simply shown by reflexivity). In some situations Lean can coerce, automatically, an element of the subtype to
 the embedded data value. When this is not possible, the value must be referenced
 explicitly.
 
@@ -179,12 +177,33 @@ We also have:
 #check (double : Double₂)
 ```
 
-If the description of the subtype seems a little detailed for such an introductory
-section, it is because the subtype is used extensively when specifying
-programs. The dependent product type, on the other hand, turns out to be of
-less use than might be expected.
+A program that corresponds directly to a specification includes not just the computational
+component, but the evidence that it meets the specified constraints. With large specifications
+that have multiple, nested subtypes, this evidence becomes rather large. From a purely programming
+perspective we are only interested in the computational content. In the case of `double` the
+function we really want is:
 
-> A note on presentation. This tutorial has been developed as a Lean script that can be
+```lean
+def double₁ (n : Nat) : Nat :=
+  2 * n
+```
+
+The non-computational content is not problematic. It does not intrude when constructing
+specifications, and it is vital for deriving/verifying programs. Removal of the
+non-computational content can be automated at the compilation stage. In fact, the evaluation
+
+```lean
+#eval double 4
+```
+
+outputs the value `8`, not the complete subtype structure.
+
+Notes:
+
+- While the subtype is used extensively in program specification, the dependent product type turns out
+to be of less use than might be expected.
+
+- This tutorial has been developed as a Lean script that can be
 loaded into a Lean IDE such as Visual Studio Code. Lean requires that any value
 be defined before it is used, which imposes a strict constraint on how a
 specification is presented. Often it is preferable to present in a top-down manner,
@@ -192,8 +211,8 @@ starting with higher level concepts that are iteratively broken down into their
 components. The Lean definition-before-use requirement means that specifications are
 presented in a bottom-up manner.
 
-> The specifications in this tutorial use definitions from core Lean and the Lean 4
+- The specifications in this tutorial use definitions from core Lean and the Lean 4
 standard library ([std4](https://github.com/leanprover/std4)).
 
-> Standard Lean naming convention is adopted. Type names are camel case with initial upper case.
-Proposition and function names are camel case with initial lower case.
+- Standard Lean naming convention is adopted. Type names are camel case with initial upper case.
+Proposition and function names are camel case with initial lower case. (_Is this correct?_)

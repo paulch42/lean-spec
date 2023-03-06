@@ -52,9 +52,9 @@ structure FlightHistory where
   flight  : Flight
   history : List TimestampedMessage
   -- The history must include at least one message.
-  inv₁    : history ≠ []
+  inv     : history ≠ [] ∧
   -- Messages are in descending timestamp order (i.e. most recent first).
-  inv₂    : history.descendingStrict
+            history.descendingStrict
 
 /-
 The flight time derived from a flight history.
@@ -146,7 +146,7 @@ This section specifies how a received message is processed with respect to a sta
 It is the most complex part of the specification.
 
 Specify the relationship between the pre and post state when a message cannot be processed, given the
-message and reason for failure.
+message, reason for failure, and any matching flights.
 -/
 def failure (pre post : State) (ref : DTG) (msg : Message) (reason : FailureReason) (fids : List FlightId) :=
   -- No change to active flights.
@@ -208,7 +208,7 @@ def ProcessMod (ref : DTG) (msg : Message) (pre : State) (modFlight : Flight →
                     | -- Single matching flight.
                       .cons fid fh .nil =>
                             let inSeq := -- Is the message temporally sequenced wrt matching flight?
-                                         ref > (fh.history.head fh.inv₁).timestamp
+                                         ref > (fh.history.head fh.inv.left).timestamp
                             let consistent := -- Is the message consistent wrt matching flight?
                                               IsConsistent.isConsistent fh.flight msg
                             (inSeq ∧ consistent → 
@@ -310,7 +310,7 @@ def Expire (ref : DTG) (pre : State) :=
                    ref - expirePeriod
   let expired := -- The active flights that have expired.
                  pre.active.filter (·.period.ends < threshold)
-  { post : State // (∀ idh, idh ∈ post.active ↔ idh ∈  pre.active ∧ idh ∉ expired) ∧
+  { post : State // (∀ idh, idh ∈ post.active ↔ idh ∈ pre.active ∧ idh ∉ expired) ∧
                     (∀ idh, idh ∈ post.inactive ↔ idh ∈ pre.inactive ∨ idh ∈ expired ) ∧
                     post.failed = pre.failed }
 
@@ -349,7 +349,7 @@ structure Query where
   ades : Option Doc7910.Designator
 
 /-
-Any of the query fields may be omitted, in which case any value matches.
+Any of the query fields may be omitted, in which case any value matches that field.
 
 Does a flight match against a query?
 -/

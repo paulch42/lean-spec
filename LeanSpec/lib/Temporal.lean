@@ -183,10 +183,8 @@ instance : HAdd DTG Duration DTG where
   hAdd := fun ⟨d₁⟩ ⟨d₂⟩ ↦ ⟨d₁ + d₂⟩
 
 /-
-Subtract a duration from a DTG.
-
-- Note: natural number subtraction ensures the result cannot be earlier than the
-  start of the epoch.
+Subtract a duration from a DTG. Natural number subtraction ensures the result cannot be
+earlier than the start of the epoch.
 -/
 instance : HSub DTG Duration DTG where
   hSub := fun ⟨d₁⟩ ⟨d₂⟩ ↦ ⟨d₁ - d₂⟩
@@ -194,7 +192,7 @@ instance : HSub DTG Duration DTG where
 /-
 The duration between two DTGs.
 
-Note: `d₁ - d₂ = d₂ - d₁ = max d₁ d₂ - min d₁ d₂`, hence it is magnitude of the difference.
+- `d₁ - d₂ = d₂ - d₁ = max d₁ d₂ - min d₁ d₂` (magnitude of the difference).
 -/
 instance : HSub DTG DTG Duration where
   hSub := fun ⟨d₁⟩ ⟨d₂⟩ ↦ if d₁ < d₂ then ⟨d₂ - d₁⟩ else ⟨d₁ - d₂⟩
@@ -236,7 +234,7 @@ instance : Inhabited Interval where
 
 /-
 The `<` order relation on Interval.
-- Note: `i₁ < i₂ ↔ i₁.ends ≤ i₂.starts`. That is, `i₁` ends before `i₂` starts.
+- `i₁ < i₂ ↔ i₁.ends ≤ i₂.starts` (`i₁` ends before `i₂` starts).
 -/
 instance : LT Interval where
   lt i₁ i₂ := i₁.ends ≤ i₂.starts

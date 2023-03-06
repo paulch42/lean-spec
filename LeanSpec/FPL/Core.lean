@@ -39,6 +39,7 @@ used to communicate with and track the flight. It is typically allocated by air
 traffic control shortly before take off.
 -/
 def SsrCode := Str 4 4
+deriving DecidableEq
 
 /-
 Depending on the level of equipment held, a flight can operate under instrument flight
@@ -117,7 +118,7 @@ designator for an Airbus A380-800. Such designators are documented in
 def Doc8643.Designator := Str 2 4
 
 /-
-Not all aircraft types are listed in Doc 8643. In such case they are presented as free text.
+Not all aircraft types are listed in Doc 8643. In such cases they are presented as free text.
 -/
 def AircraftType := Doc8643.Designator ⊕ FreeText
 
@@ -404,11 +405,6 @@ def SelcalCode := Str 4 4
 A designator for an air route (a fixed route in 3D space that an aircraft can follow).
 -/
 def RouteDesignator := Str 2 7
-
-/-
-Indicator that a flight will proceed directly between two points.
--/
-inductive Dct | dct
 
 /-
 ## Stakeholder Communication

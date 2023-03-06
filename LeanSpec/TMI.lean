@@ -117,7 +117,7 @@ structure FlightDeparture where
   -- The period of time during which the flight can reasonably take off.
   window    : Interval
   -- The flight must be able to use at least one runway.
-  inv₁      : canUse ≠ ∅  
+  inv₁      : canUse ≠ ∅
   -- The preferred take off time must occur within the window.
   inv₂      : preferred ∈ window
 
@@ -131,6 +131,8 @@ or land on short runways.
 operators have schedules to adhere to, and subsequent legs the aircraft must
 conduct, so an acceptable take off window is specified. The flight must not be
 allocated a time outside the window.
+- To present an alternative approach to invariants, in this specification each
+constraint is captured in a distinct subscripted `inv` field.
 
 Traditionally, structures (records) are used to model data consisting of multiple disparate elements.
 Dependent types introduce the capability to directly encode constraints that relate the
@@ -283,8 +285,8 @@ def cost (cfg : TMIConfig) (alloc : FlightAllocation cfg) : Duration :=
 ### Departure TMI
 
 Combining the components above, the departure TMI can be specified as:
-- the optimal TMI, that is, of all TMIs that satisfy the configuration, the (not
-necessarily unique) TMI whose cost is no greater than any other TMI.
+- the optimal allocation, that is, of all allocations that satisfy the configuration, the (not
+necessarily unique) allocation whose cost is no greater than any other.
 -/
 def DepartureTMI (cfg : TMIConfig) :=
   { opt : FlightAllocation cfg // ∀ alloc : FlightAllocation cfg, cost cfg opt ≤ cost cfg alloc }

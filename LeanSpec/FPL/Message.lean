@@ -23,26 +23,26 @@ class IsConsistent (α : Type) (_ : Flight) where
 The content and constraints of a FPL (filed flight plan) message.
 -/
 structure FPL where
-  f7    : Field7
-  f8    : Field8
-  f9    : Field9
-  f10   : Field10
-  f13   : Field13
-  f15   : Field15
-  f16   : Field16
-  f18   : Option Field18
-  inv₁  : f8_f15_level f8 f15
-  inv₂  : f8_f15_frul f8 f15
-  inv₃  : f9_f18_typ f9 f18
-  inv₄  : f10_f18_sts f10 f18
-  inv₅  : f10_f18_pbn f10 f18
-  inv₆  : f10_f18_z f10 f18
-  inv₇  : f13_f18_dep f13 f18
-  inv₈  : f15_f18_dle f15 f18
-  inv₉  : f16_f18_dest f16 f18
-  inv₁₀ : f16_f18_altn f16 f18
-  inv₁₁ : f16_f18_eet f16 f18
-  inv₁₂ : f16_f18_dle f16 f18
+  f7  : Field7
+  f8  : Field8
+  f9  : Field9
+  f10 : Field10
+  f13 : Field13
+  f15 : Field15
+  f16 : Field16
+  f18 : Option Field18
+  inv : f8_f15_level f8 f15 ∧
+        f8_f15_frul f8 f15 ∧
+        f9_f18_typ f9 f18 ∧
+        f10_f18_sts f10 f18 ∧
+        f10_f18_pbn f10 f18 ∧
+        f10_f18_z f10 f18 ∧
+        f13_f18_dep f13 f18 ∧
+        f15_f18_dle f15 f18 ∧
+        f16_f18_dest f16 f18 ∧
+        f16_f18_altn f16 f18 ∧
+        f16_f18_eet f16 f18 ∧
+        f16_f18_dle f16 f18
 
 /-
 The flight time derived from a FPL.
@@ -89,9 +89,9 @@ instance : IsFlight CHG where
 
 /-
 Is a CHG consistent with the flight to which it is applied?
-The consistency checks are those defined in [FPL.Field](Field.md).
+The consistency checks are those defined in [Field](Field.md).
 If a field changes it must be checked for consistency with any related fields.
-If a related field is also in the CHG, check there, otherwise check against
+If a related field is also in the CHG, check against the CHG, otherwise check against
 the related field in the flight.
 -/
 instance (f : Flight) : IsConsistent CHG f where
@@ -171,7 +171,7 @@ structure DEP where
   f16 : Field16a
 
 /-
-Field 13b conatins the actual time of departure.
+Field 13b contains the actual time of departure.
 
 The flight time derived from a DEP.
 -/
@@ -208,7 +208,7 @@ instance : FlightTime ARR where
 
 /-
 The flight time is typically used to match the ARR with a flight. The original flight time
-was dervied from the planned destination, hence the planned destination (if available) is
+was derived from the planned destination, hence the planned destination (if available) is
 preferred over the actual arrival for flight time calculation.
 
 Flight identification derived from an ARR.

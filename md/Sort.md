@@ -52,7 +52,7 @@ Just as there is no guarantee a postulated mathematical theorem is provable,
 there is no guarantee a program specification is implementable (they are after
 all different expressions of the same concept).
 
-Let's try again. First note the function `numOccurs` (defined in `lib.Util`) that counts
+Let's try again. First note the function `numOccurs` (defined in [Util](lib/Util.md)) that counts
 the number of occurrences of an item in a list:
 
 ```lean

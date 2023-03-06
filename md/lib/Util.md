@@ -102,7 +102,7 @@ Are the elements of a list in descending order?
 ```lean
 def descending [LE α] : List α → Prop
  | [] | [_] => True
- | a::b::as => a ≥ b ∧ ascending (b::as)
+ | a::b::as => a ≥ b ∧ descending (b::as)
 ```
 
 Are the elements of a list in strict descending order?

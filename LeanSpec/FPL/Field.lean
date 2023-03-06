@@ -1,9 +1,10 @@
 /-
 # Message Fields
 
-Building on the basic data definitions in `FPL.Core`, this module defines the message
+Building on the basic data definitions in [Core](Core.md), this module defines the message
 fields that group together related information, and which in turn are combined to
-define the messages.
+define the messages. For each field example text from an ATS message is provided, and the
+corresponding Lean value.
 -/
 
 import LeanSpec.FPL.Core
@@ -23,6 +24,13 @@ structure Field7 where
   f7bc : Option SsrCode
 
 /-
+### Field 7 Example
+
+`-SAS912/A5100`
+-/
+example := Field7.mk ⟨"SAS912", by simp⟩ (some ⟨"5100", by simp⟩)
+
+/-
 ## Field 8: Flight rules and type of flight
 
 Field 8 provides information that determines how a flight is handled.
@@ -30,6 +38,13 @@ Field 8 provides information that determines how a flight is handled.
 structure Field8 where
   f8a : FlightRules
   f8b : Option TypeOfFlight
+
+/-
+### Field 8 Example
+
+`-IS`
+-/
+example := Field8.mk .i (some .s)
 
 /-
 ## Field 9: Number and type of aircraft and wake turbulence category
@@ -40,6 +55,18 @@ structure Field9 where
   f9a : Option NumberOfAircraft    -- only included for formation flights
   f9b : Option Doc8643.Designator  -- `none` indicates ZZZZ (refer field 18 TYP)
   f9c : WakeTurbulenceCategory
+
+/-
+`-2FK27/M`
+-/
+example := Field9.mk (some ⟨2, by simp⟩) (some ⟨"FK27", by simp⟩) .m
+
+/-
+### Field 9 Example
+
+`-ZZZZ/L`
+-/
+example := Field9.mk none none .l
 
 /-
 ## Field 10: Equipment and capabilities
@@ -53,9 +80,16 @@ structure Field10 where
   f10a : List CommNavAppCode    -- empty list indicates `N`
   f10b : List SurveillanceCode  -- empty list indicates `N`
   -- Exclude invalid combinations.
-  inv₁ : ¬ (.b1 ∈ f10b ∧ .b2 ∈ f10b)
-  inv₂ : ¬ (.u1 ∈ f10b ∧ .u2 ∈ f10b)
-  inv₃ : ¬ (.v1 ∈ f10b ∧ .v2 ∈ f10b)
+  inv  : ¬ (.b1 ∈ f10b ∧ .b2 ∈ f10b) ∧
+         ¬ (.u1 ∈ f10b ∧ .u2 ∈ f10b) ∧
+         ¬ (.v1 ∈ f10b ∧ .v2 ∈ f10b)
+
+/-
+### Field 10 Example
+
+`-SAFR/SV1`
+-/
+example := (⟨[.s, .a, .f, .r], [.s, .v1], by simp⟩ : Field10)
 
 /-
 ## Field 13: Departure aerodrome and time
@@ -75,6 +109,18 @@ def Field13a := Option ADep  -- `none` indicates ZZZZ (refer field 18 DEP)
 structure Field13 where
   f13a : Field13a
   f13b : DTG
+
+/-
+### Field 13 Examples
+
+`-EHAM0730`
+-/
+example := Field13.mk (some (.adep ⟨"EHAM", by simp⟩)) 63072027000
+
+/-
+`-AFIL1625`
+-/
+example : Field13 := ⟨some .afil, 63072059100⟩
 
 /-
 The designator in Field 13, if there is one.
@@ -105,6 +151,16 @@ structure SpeedLevelChange where
   upper : Option UpperLevel
 
 /-
+### Speed/Level Change Example
+
+`N0540A055PLUS`
+-/
+example : SpeedLevelChange where
+  speed := ⟨⟨⟨540, sorry⟩, .kt, .ias, by simp⟩, sorry⟩
+  level := ⟨5500, .feet, .altitude⟩
+  upper := some .plus
+
+/-
 A specific point along the route, together with changes to speed, level and flight rules
 planned to occur at the point.
 -/
@@ -117,7 +173,9 @@ structure RoutePoint where
 Between two points on a route, the aircraft can follow a documented ATS route, or
 proceed directly.
 -/
-def RouteConnector := RouteDesignator ⊕ Dct
+inductive Connector
+  | rte (_ :RouteDesignator)
+  | dct
 
 /-
 A route element is a point (and associated data) followed by the path to
@@ -125,7 +183,7 @@ the next element. Either, but not both, may be omitted.
 -/
 structure RouteElement where
   point : Option RoutePoint
-  rte   : Option RouteConnector
+  rte   : Option Connector
   -- At least one of point or connecting route must be populated.
   inv   : ¬ (point.isNone ∧ rte.isNone)
 
@@ -140,15 +198,15 @@ def RouteElement.waypointOf : RouteElement → Option Waypoint
 The ATS route designator in a route element, if there is one.
 -/
 def RouteElement.atsRteOf : RouteElement → Option RouteDesignator
-  | ⟨_, some (Sum.inl rd), _⟩ => rd
-  | _                         => none 
+  | ⟨_, some (.rte rd), _⟩ => rd
+  | _                      => none 
 
 /-
 Does the route element indicate _direct_ to the next point?
 -/
 def RouteElement.isDct : RouteElement → Bool
-  | ⟨_, some (Sum.inr _), _⟩ => true
-  | _                        => false 
+  | ⟨_, some .dct, _⟩ => true
+  | _                 => false 
 
 /-
 The flight rules change in a route element, if there is one.
@@ -173,15 +231,15 @@ structure Route where
   elements       : List RouteElement
   starOrTruncate : Option (RouteDesignator ⊕ Truncate)
   -- Must be at least one route element.
-  inv₁           : elements ≠ ∅
+  inv            : elements ≠ ∅ ∧
   -- Consecutive flight rules changes must be distinct.
-  inv₂           : let rules := (elements.map RouteElement.ruleOf).somes
-                   rules.consecutivePairs.all (fun (x,y) => x ≠ y)
+                   let rules := (elements.map RouteElement.ruleOf).somes
+                   rules.consecutivePairs.all (fun (re₁,re₂) ↦ re₁ ≠ re₂) ∧
   -- DCT must be followed by an explicit point.
-  inv₃           : elements.consecutivePairs.all
-                     (fun (re₁,re₂) ↦ re₁.isDct → re₂.point.isSome)
+                   elements.consecutivePairs.all
+                     (fun (re₁,re₂) ↦ re₁.isDct → re₂.point.isSome) ∧
   -- An ATS route designator must connect to another designator or a named point.
-  inv₄           : elements.consecutivePairs.all
+                   elements.consecutivePairs.all
                      (fun (re₁,re₂) ↦ re₁.atsRteOf.isSome →
                         re₂.waypointOf.isSome ∨ re₂.point.isNone ∧ re₂.atsRteOf.isSome)
 
@@ -203,6 +261,26 @@ structure Field15 where
   f15c : Route
 
 /-
+### Field 15 Example
+
+`-M079F380 DCT WOL H65 RAZZI Q29 LIZZI DCT`
+-/
+def exElems := [
+  RouteElement.mk none (some .dct) (by simp),
+  RouteElement.mk (mkWpt ⟨"WOL", by simp⟩) (some (.rte ⟨"H65", by simp⟩)) (by simp),
+  RouteElement.mk (mkWpt ⟨"RAZZI", by simp⟩) (some (.rte ⟨"Q29", by simp⟩)) (by simp),
+  RouteElement.mk (mkWpt ⟨"LIZZI", by simp⟩) (some .dct) (by simp)
+]
+where mkWpt (wpt : Waypoint) : Option RoutePoint :=
+  some ⟨.wpt wpt, none, none⟩
+
+example := {
+  f15a := ⟨⟨⟨0.79, sorry⟩, .mach, .tas, by simp⟩, by simp⟩,  -- M079
+  f15b := some ⟨380, .feet, .flightLevel⟩,                   -- F380
+  f15c := ⟨none, exElems, none, sorry⟩ : Field15             -- DCT WOL H65 RAZZI Q29 LIZZI DCT
+}
+
+/-
 ## Field 16: Destination aerodrome and total estimated elapsed time, destination alternate aerodrome(s)
 
 Field 16 concerns the destination aerodrome, the flight time, and alternate destinations in the event
@@ -218,7 +296,7 @@ def maxAlternateDestinations := 2
 /-
 Field 16 consists of:
 - the planned destination aerodrome;
-- the total estimated elapsed time (TEET); i.e. the estimated flight duration;
+- the total estimated elapsed time (TEET) - i.e. the estimated flight duration;
 - alternate destination aerodromes in case of a diversion.
 -/
 structure Field16 where
@@ -226,9 +304,16 @@ structure Field16 where
   f16b : Duration
   f16c : List Field16a
   -- TEET must be less than one day.
-  inv₁ : f16b < Duration.oneDay
+  inv  : f16b < Duration.oneDay ∧
   -- Upper limit on number of alternate aerodromes.
-  inv₂ : f16c.length ≤ maxAlternateDestinations
+         f16c.length ≤ maxAlternateDestinations
+
+/-
+### Field 16 Example
+
+`-EHAM0645 EBBR ZZZZ`
+-/
+example := Field16.mk (some ⟨"EHAM", by simp⟩) 24300 [some ⟨"EBBR", by simp⟩, none] (by simp)
 
 /-
 Are a departure and destination aerodrome the same?
@@ -256,6 +341,13 @@ structure Field17 where
   f17c : Option FreeText
   -- Exactly one of designator and aerodrome name must be populated.
   inv  : f17a.isNone ↔ f17c.isSome
+
+/-
+### Field 17 Example
+
+`-ZZZZ1620 DEN HELDER`
+-/
+example := Field17.mk none 63072058800 (some ⟨"DEN HELDER", by simp⟩)
 
 /-
 ## Field 18: Other information
@@ -338,11 +430,43 @@ structure Field18 where
   rif  : Option RouteToRevisedDestination
   rmk  : Option FreeText
   -- Upper limit on number of PBN codes.
-  inv₁ : pbn.length ≤ maxPbnCodes
+  inv  : pbn.length ≤ maxPbnCodes ∧
   -- Upper limit on number of alternate aerodromes.
-  inv₂ : altn.length ≤ maxAlternateDestinations
+         altn.length ≤ maxAlternateDestinations ∧
   -- EETs must be presented in ascending order.
-  inv₃ : eet.ascendingStrict
+         eet.ascendingStrict
+
+/-
+### Field 18 Example
+
+`-PBN/A1B1C1D1O2S2T1 NAV/RNP2 REG/VHXYZ SEL/AFPQ CODE/7C6DDF OPR/FLYOU ORGN/YSSYABCO PER/C`
+-/
+example : Field18 := {
+  sts := [],
+  pbn := [.a1, .b1, .c1, .d1, .o2, .s2, .t1],
+  nav := some ⟨"RNP2", by simp⟩,
+  com := none,
+  dat := none,
+  sur := none,
+  dep := none,
+  dest := none,
+  reg := [⟨"VHXYZ", by simp⟩]
+  eet := [],
+  sel := some ⟨"AFPQ", by simp⟩,
+  typ := [],
+  code := some ⟨"7C6DDF", by simp⟩,
+  dle := [],
+  opr := some ⟨"FLYOU", by simp⟩,
+  orgn := some ⟨"YSSYABCO", by simp⟩,
+  per := some .c,
+  altn := [],
+  ralt := [],
+  talt := [],
+  rif := none,
+  rmk := none,
+  inv := sorry
+}
+
 
 /-
 ## Field 22: Amendment
@@ -364,6 +488,23 @@ structure Field22 where
   inv : ¬ (f7.isNone ∧f8.isNone ∧ f9.isNone ∧ f10.isNone ∧ f13.isNone ∧ f15.isNone ∧ f16.isNone ∧ f18.isNone)
 
 /-
+### Field 22 Example
+
+`-8/IX-13/EDDN1230`
+-/
+example : Field22 where
+  f7 := none
+  f8 := some ⟨.i, some .x⟩
+  f9 := none
+  f10 := none
+  f13 := some ⟨some (.adep ⟨"EDDN", by simp⟩), 63072027000⟩
+  f15 := none
+  f16 := none
+  f18 := none
+  inv := by simp
+
+
+/-
 ## Consistency checks between fields
 
 As noted earlier, the legacy nature of the flight planning messages means related information
@@ -376,8 +517,8 @@ other fields.
  - If initial requested cruising level is VFR, initial flight rules must be V or Z.
 -/
 def f8_f15_level : Field8 → Field15 → Prop
-  | ⟨frul, _⟩, ⟨_, none, _⟩ => frul ∈ [.v, .z]
-  | _, _                    => True
+  | f8, ⟨_, none, _⟩ => f8.f8a ∈ [.v, .z]
+  | _, _             => True
 
 /-
 ### Fields 8 and 15 (flight rules)
@@ -459,8 +600,8 @@ def f13_f18_dep : Field13 → Option Field18 → Prop
 - A delay point must be explicitly named in the route.
 -/
 def f15_f18_dle : Field15 → Option Field18 → Prop
-  | ⟨_, _, rte⟩, some f18 => f18.dle.map (·.point) ⊆ rte.waypoints
-  | _, _                  => True
+  | f15, some f18 => f18.dle.map (·.point) ⊆ f15.f15c.waypoints
+  | _, _          => True
 
 /-
 ### Fields 16 and 18 (DEST)

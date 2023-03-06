@@ -49,6 +49,8 @@ so `String` is adequate for our needs.
 -/
 abbrev Node := String
 
+example : Node := "N1"
+
 /-
 An edge has a start and an end node, hence is directed, and a cost to traverse from
 the start to the end.
@@ -58,34 +60,44 @@ structure Edge where
   ends   : Node
   cost   : Nat
 
+example : Edge := {
+  starts := "N1"
+  ends   := "N2"
+  cost   := 4
+}
+
 /-
 A graph is simply a non-empty list of edges. We don't consider empty graphs here.
 -/
 abbrev Graph := List₁ Edge
 
+def exampleGraph : Graph := ⟨[⟨"N1","N2",4⟩, ⟨"N1","N3",7⟩, ⟨"N2","N3",2⟩], by simp⟩
+
 /-
 With the above definitions we can define a path over a graph.
 -/
 structure Path (g : Graph) where
-  path   : List₁ Edge
-  inv₁   : path ⊆ g
-  inv₂   : ∀ ee ∈ path.list.consecutivePairs, ee.1.ends = ee.2.starts
+  path : List₁ Edge
+  inv  : path ⊆ g ∧
+         ∀ ee ∈ path.list.consecutivePairs, ee.1.ends = ee.2.starts
 
 /-
 `Path` is dependent on `Graph`, so given `g : Graph`, `Path g` is the type of paths
 over the graph `g`. The elements are:
 - `path` is the ordered list of edges that constitute the path;
-- `inv₁` states every edge in the path is also in the graph;
-- `inv₂` states that given two consecutive edges, the end node of the first is the start node
+- `inv.left` states every edge in the path is also in the graph; and
+- `inv.right` states that given two consecutive edges, the end node of the first is the start node
 of the second. (Refer to function `consecutivePairs` defined in [Util](lib/Util.md).)
 
 Notes:
-- The fields named `inv`, possibly subscripted, specify invariants. That is, they
+- Fields named `inv` specify invariants. That is, they
 specify the constraints any instance of the type must satisfy. The `inv` fields
 themselves contain no data or computational content, they serve to restrict the
 values allowed in the other fields.
 - In subsequent definitions, the convention adopted is that fields named `inv`
 always capture constraints on the type.
+- Where there are multiple constraints, there is a single `inv` field that is the conjunction
+of the constraints.
 
 Let's define a couple of convenience functions to identify the nodes at the start and end
 of a path.
@@ -97,6 +109,22 @@ def pathEnd (p : Path g) : Node :=
   (last p.path).ends
 
 /-
+An example of a path, with respect to graph `exampleGraph` defined earlier, is:
+-/
+example : Path exampleGraph := {
+  path := ⟨[⟨"N1","N2",4⟩, ⟨"N2","N3",4⟩], by simp⟩,
+  inv  := sorry
+}
+
+/-
+As noted in [Introduction](../Introduction.md), a program derived directly from a specification
+contains the non-computational content that is evidence of the correctness of the program, but which
+is of no interest when the program is run. In the case of data definitions, the non-computational content
+is the evidence the data satisfies the structure constraints (`by simp` and `sorry` above).
+If we are only interested in the data, the non-computational content starts to become intrusive,
+especially when we have many, nested subtypes. However, that is only because we are
+constructing example data, it has minimal impact on the specification itself.
+
 ## Graph Search
 
 We can now specify a function that finds a path through a graph. A first attempt

@@ -18,7 +18,7 @@ The flight identifier is used when matching received flight information against 
 
 - Aircraft identification (field 7a).
 - Departure aerodrome (field 13a).
-- Flight time - a period of time based on the departure time (13b) and flight duration (16b).
+- Flight time - a period of time based on the departure time (field 13b) and flight duration (field 16b).
 -/
 structure FlightId where
   acid   : AircraftIdentification
@@ -61,10 +61,7 @@ departure = destination.
 -/
 def adepAdesFlightTime (f13a : Field13a) (f13b : DTG) (f16a : Field16a) : Option Duration → Interval
   | none      => -- flight duration not known
-                 if adepIsAdes f13a f16a then
-                   .intervalOf f13b maxRoundTripTime
-                 else
-                   .intervalOf f13b maxFlightTime
+                 .intervalOf f13b (if adepIsAdes f13a f16a then maxRoundTripTime else maxFlightTime)
   | some teet => -- flight duration known
                  if adepIsAdes f13a f16a then
                    .intervalOf f13b (min teet maxRoundTripTime)
@@ -132,7 +129,7 @@ structure Flight where
 /-
 Note there are many constraints to which the flight data must adhere. This is a good example
 of how dependent types allow constraints to be packaged with the data elements to give
-a precise characterisation. The constraints are as defined in [Field](Field.md).
+a precise characterisation. All but the last constraint are as defined in [Field](Field.md).
 
 The flight time derived from a flight.
 -/
