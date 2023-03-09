@@ -60,3 +60,7 @@ Some concluding remarks are provided [here](Conclusion.md) (__to do__).
 The files are Lean scripts from which markdown is generated. Python and the [lean2md](https://github.com/arthurpaulino/lean2md) package are required.
 
 Build the markdown files with `lake run md`.
+
+## Acknowledgement
+
+Thanks to Kevin Buzzard, Mario Caneiro and Partick Massot for their valuable comments.

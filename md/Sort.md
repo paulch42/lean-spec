@@ -21,7 +21,8 @@ if the first item precedes the second item, and the tail is ordered. The type of
 the list must admit an order relation, stated in the definition by `[LT α]`: the type `α`
 is an instance of the type class `LT`.
 
-Two lists are permutations of each other if they contain the same items, irrespective of order:
+First let's try a naive definition. Two lists are permutations of each other if they
+contain the same items, irrespective of order:
 
 ```lean
 def permutation₁ (as bs : List α) :=
@@ -84,6 +85,10 @@ unchanged:
 def Sort₂ [BEq α] [LE α] (as : List α) :=
   { sas : List α // ordered₂ sas ∧ permutation₂ as sas }
 ```
+
+In fact `LE` is insufficient. It only guarantees there is a binary predicate on the type, not
+that it is the predicate we normally think of as _less than or equal_. The predicate must be
+a partial order, but we won't go into the details here.
 
 The predicate `ordered₂` is typical of a traditional approach, perhaps with the
 exception the result is a `Prop` rather than a `Bool`. Dependently typed

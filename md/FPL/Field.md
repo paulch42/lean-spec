@@ -2,8 +2,11 @@
 
 Building on the basic data definitions in [Core](Core.md), this module defines the message
 fields that group together related information, and which in turn are combined to
-define the messages. For each field example text from an ATS message is provided, and the
-corresponding Lean value.
+define the messages.
+
+For each field example text from an ATS message is provided, together with the corresponding
+Lean value. Lean has a variety of ways to populate structure values, and all variants are
+demonstrated.
 
 ```lean
 import LeanSpec.FPL.Core
