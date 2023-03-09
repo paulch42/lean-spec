@@ -53,7 +53,7 @@ The following supplementary modules support the example specifications:
 | [Temporal](md/lib/Temporal.md) | A simple theory of dates, times, durations and intervals |
 | [Geo](md/lib/Geo.md)           | Basic geospatial entities |
 
-Some concluding remarks are provided [here](Conclusion.md) (__to do__).
+Some discussion on the use of Lean for specifications is [here](Discussion.md) (__to do__).
 
 ## Creating The Markdown Files
 

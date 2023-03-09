@@ -341,11 +341,11 @@ hence includes things like:
 - identifiers that do not relate to a flight;
 - slots referring to runways that do not exist.
 
-It is then necessary to define a function `satisfies`, external to the type definition,
+It is then necessary to define a property `Satisfies`, external to the type definition,
 that specifies when a flight allocation satisfies a TMI configuration (that is, the
 `FlightAllocation` is a valid solution to the `TMIConfig`).
 -/
-def satisfies (cfg : TMIConfig) (alloc : FlightAllocation₂) : Prop :=
+def Satisfies (cfg : TMIConfig) (alloc : FlightAllocation₂) : Prop :=
   alloc.domain ⊆ cfg.flights.domain ∧
   (∀ slot ∈ alloc.range, slot.rwy ∈ cfg.rates.domain) ∧
   (∀ fsl ∈ alloc, ∀ fdep ∈ cfg.flights,
@@ -359,7 +359,7 @@ def satisfies (cfg : TMIConfig) (alloc : FlightAllocation₂) : Prop :=
 
 /-
 Note that, other than some minor syntactic differences, the constraints expressed by
-`satisfies` are exactly the invariants of type `FlightAllocation`.
+`Satisfies` are exactly the invariants of type `FlightAllocation`.
 
 The dependent approach allows the constraints to be located with the data they refer to,
 rather than elsewhere in the specification, which aids comprehension. Further, the dependent

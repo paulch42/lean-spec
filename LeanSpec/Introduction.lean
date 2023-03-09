@@ -102,7 +102,7 @@ familiar and give dependent type theory (and hence Lean) its unique flavour.
 Consider the specification of a function that doubles a number. Its property
 is captured by:
 -/
-def doubleProp := ∀n : Nat, ∃m : Nat, m = 2 * n
+def DoubleProp := ∀n : Nat, ∃m : Nat, m = 2 * n
 
 /-
 A simple specification, but not quite what we want. In Lean propositions have
@@ -155,9 +155,9 @@ def double (n : Nat) : { m : Nat // m = 2 * n } :=
 
 /-
 The result is the number (`val`) and evidence the number is twice the argument
-(`property`, where the evidence here is simply shown by reflexivity). In some situations Lean can coerce, automatically, an element of the subtype to
-the embedded data value. When this is not possible, the value must be referenced
-explicitly.
+(`property`, where the evidence here is simply shown by reflexivity). In some
+situations Lean can coerce, automatically, an element of the subtype to the embedded
+data value. When this is not possible, the value must be referenced explicitly.
 
 We can then check that `double` does indeed implement the specification `Double₃`.
 That is `double n` is of type `Double₃ n` for any `n`:
@@ -182,7 +182,7 @@ def double₁ (n : Nat) : Nat :=
 
 /-
 The non-computational content is not problematic. It does not intrude when constructing
-specifications, and it is vital for deriving/verifying programs. Removal of the
+specifications, and it is essential for deriving/verifying programs. Removal of the
 non-computational content can be automated at the compilation stage. In fact, the evaluation
 -/
 #eval double 4
@@ -205,6 +205,6 @@ presented in a bottom-up manner.
 - The specifications in this tutorial use definitions from core Lean and the Lean 4
 standard library ([std4](https://github.com/leanprover/std4)).
 
-- Standard Lean naming convention is adopted. Type names are camel case with initial upper case.
-Proposition and function names are camel case with initial lower case. (_Is this correct?_)
+- Standard Lean naming convention is adopted. Type and proposition names are camel case
+with initial upper case. Function names are camel case with initial lower case.
 -/

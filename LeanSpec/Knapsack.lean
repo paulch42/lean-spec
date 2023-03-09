@@ -47,23 +47,23 @@ def value (items : List Item) : Nat :=
   (items.map Item.value).add 0
 
 /-
-## subList
+## SubList
 
 A list `as` is a sublist of `bs` if every element in `as` is also an element of `bs`,
 taking account of duplicates. For example, if `as` has two copies of an item, `bs` must
 contain at least two copies of the same item.
 -/
-def subList [BEq α] (as bs : List α) :=
+def SubList [BEq α] (as bs : List α) :=
   ∀ a : α, as.numOccurs a ≤ bs.numOccurs a
 
 /-
-## candidate
+## Candidate
 
 A list of items is a candidate solution to the knapsack problem if its elements are
 all drawn from the source items, and its cost does not exceed the capacity.
 -/
-def candidate (capacity : Nat) (source : List Item) (candidate : List Item) :=
-  subList candidate source ∧ cost candidate ≤ capacity
+def Candidate₁ (capacity : Nat) (source : List Item) (candidate : List Item) :=
+  SubList candidate source ∧ cost candidate ≤ capacity
 
 /-
 ## Knapsack
@@ -75,8 +75,8 @@ no better candidate exists.
 -/
 def Knapsack₁ (capacity : Nat) (source : List Item) :=
   { opt : List Item
-    // candidate capacity source opt ∧
-       ∀ is : List Item, candidate capacity source is → value is ≤ value opt }
+    // Candidate₁ capacity source opt ∧
+       ∀ is : List Item, Candidate₁ capacity source is → value is ≤ value opt }
 
 /-
 This is a nice example of where formal specification works very well.
@@ -91,18 +91,18 @@ rather than a predicate that determines if a list of items is a potential
 solution, we define the type of potential solutions.
 -/
 
-def Candidate (capacity : Nat) (source : List Item) :=
-  { cand : List Item // subList cand source ∧ cost cand ≤ capacity }
+def Candidate₂ (capacity : Nat) (source : List Item) :=
+  { cand : List Item // SubList cand source ∧ cost cand ≤ capacity }
 
 /-
-A element of type `Candidate capacity source` is any list whose elements are drawn from
+A element of type `Candidate₂ capacity source` is any list whose elements are drawn from
 `source` and whose cost does not exceed `capacity`.
 
-With this definition of `Candidate`, the knapsack problem can be specified as:
+With this definition of candidate, the knapsack problem can be specified as:
 -/
 def Knapsack₂ (capacity : Nat) (source : List Item) :=
-  { opt : Candidate capacity source
-    // ∀ cand : Candidate capacity source, value cand.val ≤ value opt.val }
+  { opt : Candidate₂ capacity source
+    // ∀ cand : Candidate₂ capacity source, value cand.val ≤ value opt.val }
 
 /-
 In this approach the subtype property can assume `opt` is a candidate solution.
