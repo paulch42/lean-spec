@@ -260,14 +260,13 @@ structure Route where
   inv            : elements ≠ ∅ ∧
   -- Consecutive flight rules changes must be distinct.
                    let rules := (elements.map RouteElement.ruleOf).somes
-                   rules.consecutivePairs.all (fun (re₁,re₂) ↦ re₁ ≠ re₂) ∧
+                   rules.Pairwise' (· ≠ ·) ∧
   -- DCT must be followed by an explicit point.
-                   elements.consecutivePairs.all
-                     (fun (re₁,re₂) ↦ re₁.isDct → re₂.point.isSome) ∧
+                   elements.Pairwise' (·.isDct → ·.point.isSome) ∧
   -- An ATS route designator must connect to another designator or a named point.
-                   elements.consecutivePairs.all
-                     (fun (re₁,re₂) ↦ re₁.atsRteOf.isSome →
-                        re₂.waypointOf.isSome ∨ re₂.point.isNone ∧ re₂.atsRteOf.isSome)
+                   elements.Pairwise'
+                     (fun re₁ re₂ ↦ re₁.atsRteOf.isSome →
+                        re₂.waypointOf.isSome ∨ (re₂.point.isNone ∧ re₂.atsRteOf.isSome))
 ```
 
 The list of named waypoints in a route.

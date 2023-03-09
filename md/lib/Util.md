@@ -122,12 +122,20 @@ def somes : List (Option α) → List α
   | some a :: as => a :: somes as
 ```
 
-The list of consecutive pairs drawn from a source list.
+`Pairwise' R l` means that consecutive elements are `R`-related.
+```
+Pairwise' R [1, 2, 3] ↔ R 1 2 ∧ R 2 3
+```
+For example if `R = (·<·)` then it asserts that `l` is (strictly) ordered.
 
 ```lean
-def consecutivePairs : List α → List (α × α)
-  | [] | [_] => []
-  | a :: b :: as => (a,b) :: consecutivePairs (b :: as)
+inductive Pairwise' (R : α → α → Prop) : List α → Prop
+  -- The empty list is vacuously pairwise related.
+  | zero : Pairwise' R []
+  -- The singleton list is vacuously pairwise related.
+  | one  : ∀ {a : α}, Pairwise' R [a]
+  -- `a :: b :: l` is `Pairwise' R` if `a` `R`-relates to `b` and `b :: l` is `Pairwise' R`.
+  | twos : ∀ {a : α} {b : α} {l : List α}, R a b → Pairwise' R (b :: l) → Pairwise' R (a :: b :: l)
 
 end List
 ```

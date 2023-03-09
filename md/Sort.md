@@ -124,3 +124,10 @@ is refined, and clearer ways of expressing concepts are discovered.
 Use the `prime` property from the last exercise.
 
 - Using `permutation₂`, specify a function that returns all permutations of an input list.
+
+- The Lean standard library, `std4`, defines an inductive proposition `Pairwise`. Specify
+`Sort` using `Pairwise`.
+
+```lean
+#check List.Pairwise
+```
