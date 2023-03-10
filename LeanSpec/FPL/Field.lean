@@ -518,7 +518,7 @@ other fields.
 
  - If initial requested cruising level is VFR, initial flight rules must be V or Z.
 -/
-def f8_f15_level : Field8 → Field15 → Prop
+def F8F15Level : Field8 → Field15 → Prop
   | f8, ⟨_, none, _⟩ => f8.f8a ∈ [.v, .z]
   | _, _             => True
 
@@ -529,7 +529,7 @@ def f8_f15_level : Field8 → Field15 → Prop
 - If initial rules is Y (IFR first), first change must be to VFR.
 - If initial rules is Z (VFR first), first change must be to IFR.
 -/
-def f8_f15_frul (f8 : Field8) (f15 : Field15) : Prop :=
+def F8F15Rule (f8 : Field8) (f15 : Field15) : Prop :=
   match (f15.f15c.elements.map RouteElement.ruleOf).somes with
   | []        => f8.f8a ∈ [.i, .v]
   | .vfr :: _ => f8.f8a = .y
@@ -541,7 +541,7 @@ def f8_f15_frul (f8 : Field8) (f15 : Field15) : Prop :=
 - If designator in field 9b, field 18 TYP not populated.
 - If ZZZZ in field 9b, aircraft type in field 18 TYP.
 -/
-def f9_f18_typ : Field9 → Option Field18 → Prop
+def F9F18Typ : Field9 → Option Field18 → Prop
   | -- If designator in 9b, 18 TYP not populated.
     {f9b := some _, ..}, none
   | {f9b := some _, ..}, some {typ := [], ..}
@@ -555,7 +555,7 @@ def f9_f18_typ : Field9 → Option Field18 → Prop
 
 - Can't specify W (RVSM capable) in Field 10a and NONRVSM on Field 18 STS.
 -/
-def f10_f18_sts : Field10 → Option Field18 → Prop
+def F10F18Sts : Field10 → Option Field18 → Prop
   | f10, some f18 => ¬ (.w ∈ f10.f10a ∧ .nonrvsm ∈ f18.sts)
   | _, _          => True
 
@@ -564,7 +564,7 @@ def f10_f18_sts : Field10 → Option Field18 → Prop
 
 - If R specified in field 10a, PBN capability must be provided in Field 18 PBN.
 -/
-def f10_f18_pbn : Field10 → Option Field18 → Prop
+def F10F18Pbn : Field10 → Option Field18 → Prop
   | f10, none     => .r ∉ f10.f10a
   | f10, some f18 => .r ∈ f10.f10a ↔ f18.pbn ≠ ∅ 
 
@@ -574,7 +574,7 @@ def f10_f18_pbn : Field10 → Option Field18 → Prop
 - If Z specified in field 10a, other information must be provided in at least one of COM,
 NAV or DAT in Field 18.
 -/
-def f10_f18_z : Field10 → Option Field18 → Prop
+def F10F18Z : Field10 → Option Field18 → Prop
   | f10, none     => .z ∉ f10.f10a
   | f10, some f18 => .z ∈ f10.f10a ↔ f18.com.isSome ∨ f18.nav.isSome ∨ f18.dat.isSome
 
@@ -585,7 +585,7 @@ def f10_f18_z : Field10 → Option Field18 → Prop
 - If ZZZZ in field 13a, departure point in field 18 DEP.
 - If AFIL in field 13a, ATS unit in field 18 DEP.
 -/
-def f13_f18_dep : Field13 → Option Field18 → Prop
+def F13F18Dep : Field13 → Option Field18 → Prop
   | -- If designator in 13a, 18 DEP not populated.
     ⟨(some (.adep _)), _⟩, none
   | ⟨some (.adep _), _⟩, some {dep := none, ..}
@@ -601,7 +601,7 @@ def f13_f18_dep : Field13 → Option Field18 → Prop
 
 - A delay point must be explicitly named in the route.
 -/
-def f15_f18_dle : Field15 → Option Field18 → Prop
+def F15F18Dle : Field15 → Option Field18 → Prop
   | f15, some f18 => f18.dle.map (·.point) ⊆ f15.f15c.waypoints
   | _, _          => True
 
@@ -611,7 +611,7 @@ def f15_f18_dle : Field15 → Option Field18 → Prop
 - If designator in field 16a, field 18 DEST not populated.
 - If ZZZZ in field 16a, destination point in field 18 DEST.
 -/
-def f16_f18_dest : Field16 → Option Field18 → Prop
+def F16F18Dest : Field16 → Option Field18 → Prop
   | -- If designator in 16a, 18 DEST not populated.
     {f16a := some _, ..}, none
   | {f16a := some _, ..}, some {dest := none, ..}
@@ -625,7 +625,7 @@ def f16_f18_dest : Field16 → Option Field18 → Prop
 
 - All EETs must be less than the flight duration.
 -/
-def f16_f18_eet : Field16 → Option Field18 → Prop
+def F16F18Eet : Field16 → Option Field18 → Prop
   | {f16b := teet, ..}, some f18 => f18.eet.all (·.duration < teet)
   | _, _                         => True
 
@@ -634,7 +634,7 @@ def f16_f18_eet : Field16 → Option Field18 → Prop
 
 - The sum of the delays at the route points must be less than the flight duration.
 -/
-def f16_f18_dle : Field16 → Option Field18 → Prop
+def F16F18Dle : Field16 → Option Field18 → Prop
   | {f16b := teet, ..}, some f18 => (f18.dle.map (·.duration)).add 0 < teet
   | _, _                         => True
 
@@ -643,7 +643,7 @@ def f16_f18_dle : Field16 → Option Field18 → Prop
 
 - For each ZZZZ entry in Field 16c, there must be a corresponding entry in Field 18 ALTN.
 -/
-def f16_f18_altn : Field16 → Option Field18 → Prop
+def F16F18Altn : Field16 → Option Field18 → Prop
   | {f16c := [], ..}, none => True
   | {f16c := altn16, ..}, some {altn := altn18, ..}
                            => (altn16.filter (·.isNone)).length = altn18.length
@@ -654,7 +654,7 @@ def f16_f18_altn : Field16 → Option Field18 → Prop
 
 - Destination, if provided, must differ from actual arrival aerodrome.
 -/
-def f16_f17_dest : Field16a → Option Field17 → Prop
+def F16F17Dest : Field16a → Option Field17 → Prop
   | some dest, some {f17a := some arr, ..} => dest ≠ arr
   | _, _                                   => True
 

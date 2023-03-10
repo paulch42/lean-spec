@@ -33,18 +33,18 @@ structure FPL where
   f15 : Field15
   f16 : Field16
   f18 : Option Field18
-  inv : f8_f15_level f8 f15 ∧
-        f8_f15_frul f8 f15 ∧
-        f9_f18_typ f9 f18 ∧
-        f10_f18_sts f10 f18 ∧
-        f10_f18_pbn f10 f18 ∧
-        f10_f18_z f10 f18 ∧
-        f13_f18_dep f13 f18 ∧
-        f15_f18_dle f15 f18 ∧
-        f16_f18_dest f16 f18 ∧
-        f16_f18_altn f16 f18 ∧
-        f16_f18_eet f16 f18 ∧
-        f16_f18_dle f16 f18
+  inv : F8F15Level f8 f15 ∧
+        F8F15Rule f8 f15 ∧
+        F9F18Typ f9 f18 ∧
+        F10F18Sts f10 f18 ∧
+        F10F18Pbn f10 f18 ∧
+        F10F18Z f10 f18 ∧
+        F13F18Dep f13 f18 ∧
+        F15F18Dle f15 f18 ∧
+        F16F18Dest f16 f18 ∧
+        F16F18Altn f16 f18 ∧
+        F16F18Eet f16 f18 ∧
+        F16F18Dle f16 f18
 ```
 
 The flight time derived from a FPL.
@@ -105,18 +105,18 @@ the related field in the flight.
 ```lean
 instance (f : Flight) : IsConsistent CHG f where
   isConsistent | {f22 := ⟨_,f8,f9,f10,f13,f15,f16,f18,_⟩, ..} =>
-                 checkOpt f8_f15_level f8 f15 f.f8 f.f15 ∧
-                 checkOpt f8_f15_frul f8 f15 f.f8 f.f15 ∧
-                 checkOpt f9_f18_typ f9 f18 f.f9 f.f18 ∧
-                 checkOpt f10_f18_sts f10 f18 f.f10 f.f18 ∧
-                 checkOpt f10_f18_pbn f10 f18 f.f10 f.f18 ∧
-                 checkOpt f10_f18_z f10 f18 f.f10 f.f18 ∧
-                 checkOpt f13_f18_dep f13 f18 f.f13 f.f18 ∧
-                 checkOpt f15_f18_dle f15 f18 f.f15 f.f18 ∧
-                 checkOpt f16_f18_dest f16 f18 f.f16 f.f18 ∧
-                 checkOpt f16_f18_eet f16 f18 f.f16 f.f18 ∧
-                 checkOpt f16_f18_dle f16 f18 f.f16 f.f18 ∧
-                 checkOpt f16_f18_altn f16 f18 f.f16 f.f18
+                 checkOpt F8F15Level f8 f15 f.f8 f.f15 ∧
+                 checkOpt F8F15Rule f8 f15 f.f8 f.f15 ∧
+                 checkOpt F9F18Typ f9 f18 f.f9 f.f18 ∧
+                 checkOpt F10F18Sts f10 f18 f.f10 f.f18 ∧
+                 checkOpt F10F18Pbn f10 f18 f.f10 f.f18 ∧
+                 checkOpt F10F18Z f10 f18 f.f10 f.f18 ∧
+                 checkOpt F13F18Dep f13 f18 f.f13 f.f18 ∧
+                 checkOpt F15F18Dle f15 f18 f.f15 f.f18 ∧
+                 checkOpt F16F18Dest f16 f18 f.f16 f.f18 ∧
+                 checkOpt F16F18Eet f16 f18 f.f16 f.f18 ∧
+                 checkOpt F16F18Dle f16 f18 f.f16 f.f18 ∧
+                 checkOpt F16F18Altn f16 f18 f.f16 f.f18
 where checkOpt {α β : Type} (p : α → β → Prop) : Option α → Option β → Option α → Option β → Prop
       | some chga, some chgb, _, _    => p chga chgb
       | some chga, none, _, some fltb => p chga fltb
@@ -213,7 +213,7 @@ structure ARR where
   f13 : Field13
   f16 : Field16a
   f17 : Field17
-  inv : f16_f17_dest f16 f17
+  inv : F16F17Dest f16 f17
 ```
 
 The flight time derived from an ARR.

@@ -375,7 +375,7 @@ def Satisfies (cfg : TMIConfig) (alloc : FlightAllocation₂) : Prop :=
 ```
 
 Note that, other than some minor syntactic differences, the constraints expressed by
-`satisfies` are exactly the invariants of type `FlightAllocation`.
+`Satisfies` are exactly the invariants of type `FlightAllocation`.
 
 The dependent approach allows the constraints to be located with the data they refer to,
 rather than elsewhere in the specification, which aids comprehension. Further, the dependent

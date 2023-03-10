@@ -110,19 +110,19 @@ structure Flight where
   f16    : Field16
   f17    : Option Field17
   f18    : Option Field18
-  inv    : f8_f15_level f8 f15 ∧
-           f8_f15_frul f8 f15 ∧
-           f9_f18_typ f9 f18 ∧
-           f10_f18_sts f10 f18 ∧
-           f10_f18_pbn f10 f18 ∧
-           f10_f18_z f10 f18 ∧
-           f13_f18_dep f13 f18 ∧
-           f15_f18_dle f15 f18 ∧
-           f16_f18_dest f16 f18 ∧
-           f16_f18_altn f16 f18 ∧
-           f16_f18_eet f16 f18 ∧
-           f16_f18_dle f16 f18 ∧
-           f16_f17_dest f16.f16a f17 ∧
+  inv    : F8F15Level f8 f15 ∧
+           F8F15Rule f8 f15 ∧
+           F9F18Typ f9 f18 ∧
+           F10F18Sts f10 f18 ∧
+           F10F18Pbn f10 f18 ∧
+           F10F18Z f10 f18 ∧
+           F13F18Dep f13 f18 ∧
+           F15F18Dle f15 f18 ∧
+           F16F18Dest f16 f18 ∧
+           F16F18Altn f16 f18 ∧
+           F16F18Eet f16 f18 ∧
+           F16F18Dle f16 f18 ∧
+           F16F17Dest f16.f16a f17 ∧
            -- Field 17 is populated if and only if the flight is completed.
            f17.isSome ↔ status = .completed
 
