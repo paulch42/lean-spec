@@ -203,4 +203,7 @@ sum in the specification of `ShortestPath` by requiring there is at least one pa
 - Specify the property that a graph has no edges with identical start and end nodes.
 
 - Specify the property that a graph is acyclic.
+
+- Define non-empty lists as a subtype instead of a structure, and modify the remainder of the
+specification as necessary.
 -/
