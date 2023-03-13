@@ -31,7 +31,7 @@ structure TimestampedMessage where
 The `<` order relation on `TimestampedMessage`. Order by time of reception.
 -/
 instance : LT TimestampedMessage where
-  lt tm₁ tm₂ := tm₁.timestamp < tm₂.timestamp
+  lt tm₁ tm₂ := LT.lt tm₁.timestamp tm₂.timestamp
 
 /-
 The `<` relation is decidable.

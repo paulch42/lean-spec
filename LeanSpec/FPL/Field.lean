@@ -236,12 +236,12 @@ structure Route where
   -- Must be at least one route element.
   inv            : elements ≠ ∅ ∧
   -- Consecutive flight rules changes must be distinct.
-                   let rules := (elements.map RouteElement.ruleOf).somes
-                   rules.Pairwise' (· ≠ ·) ∧
+                   let rules := (elements.map RouteElement.ruleOf).reduceOption
+                   rules.Chain' (· ≠ ·) ∧
   -- DCT must be followed by an explicit point.
-                   elements.Pairwise' (·.isDct → ·.point.isSome) ∧
+                   elements.Chain' (·.isDct → ·.point.isSome) ∧
   -- An ATS route designator must connect to another designator or a named point.
-                   elements.Pairwise'
+                   elements.Chain'
                      (fun re₁ re₂ ↦ re₁.atsRteOf.isSome →
                         re₂.waypointOf.isSome ∨ (re₂.point.isNone ∧ re₂.atsRteOf.isSome))
 
@@ -249,7 +249,7 @@ structure Route where
 The list of named waypoints in a route.
 -/
 def Route.waypoints (rte : Route) : List Waypoint :=
-  (rte.elements.map RouteElement.waypointOf).somes
+  (rte.elements.map RouteElement.waypointOf).reduceOption
 
 /-
 Field 15 consists of:
@@ -381,7 +381,7 @@ structure ElapsedTimePoint where
 The `<` order relation on EET points. Ordered by the duration.
 -/
 instance : LT ElapsedTimePoint where
-  lt := fun ⟨_,d₁⟩ ⟨_,d₂⟩ ↦ d₁ < d₂
+  lt et₁ et₂ := LT.lt et₁.duration et₂.duration
 
 /-
 The `<` relation is decidable.
@@ -530,7 +530,7 @@ def F8F15Level : Field8 → Field15 → Prop
 - If initial rules is Z (VFR first), first change must be to IFR.
 -/
 def F8F15Rule (f8 : Field8) (f15 : Field15) : Prop :=
-  match (f15.f15c.elements.map RouteElement.ruleOf).somes with
+  match (f15.f15c.elements.map RouteElement.ruleOf).reduceOption with
   | []        => f8.f8a ∈ [.i, .v]
   | .vfr :: _ => f8.f8a = .y
   | .ifr :: _ => f8.f8a = .z

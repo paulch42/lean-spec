@@ -85,7 +85,7 @@ With the above definitions we can define a path over a graph.
 ```lean
 structure Path (g : Graph) where
   path : List₁ Edge
-  inv  : path ⊆ g ∧ path.list.Pairwise' (·.ends = ·.starts)
+  inv  : path ⊆ g ∧ path.list.Chain' (·.ends = ·.starts)
 ```
 
 `Path` is dependent on `Graph`, so given `g : Graph`, `Path g` is the type of paths
@@ -93,7 +93,7 @@ over the graph `g`. The elements are:
 - `path` is the ordered list of edges that constitute the path;
 - `inv.left` states every edge in the path is also in the graph; and
 - `inv.right` states that given two consecutive edges, the end node of the first is the start node
-of the second. (Refer to propostion `Pairwise'` defined in [Util](lib/Util.md).)
+of the second. (Refer to propostion `List.Chain'` defined in [std4](https://github.com/leanprover/std4).)
 
 Notes:
 - Fields named `inv` specify invariants. That is, they

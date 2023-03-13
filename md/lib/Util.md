@@ -22,6 +22,20 @@ instance : DecidableEq (Str m n) :=
   sorry
 ```
 
+The `<` order relation on `Str`.
+
+```lean
+instance (m n : Nat) : LT (Str m n) where
+  lt s₀ s₁ := s₀.val < s₁.val
+```
+
+The `<` relation is decidable.
+
+```lean
+instance (m n : Nat) (x y : Str m n) : Decidable (x < y) :=
+  inferInstanceAs (Decidable (x.val < y.val))
+```
+
 Non-zero natural numbers.
 
 ```lean
@@ -34,10 +48,53 @@ Range restricted natural numbers.
 def NatMN (m n : Nat) := { x : Nat // m ≤ x ∧ x < n }
 ```
 
+State decidable equality for `Float`.
+
+```lean
+instance : DecidableEq Float :=
+  sorry
+```
+
 Non-negative floats.
 
 ```lean
 def Float₀ := { x : Float // x ≥ 0 }
+deriving DecidableEq
+```
+
+The `<` order relation on `Float₀`.
+
+```lean
+instance : LT Float₀ where
+  lt f₀ f₁ := f₀.val < f₁.val
+```
+
+The `<` relation is decidable.
+
+```lean
+instance (x y : Float₀) : Decidable (x < y) :=
+  inferInstanceAs (Decidable (x.val < y.val))
+```
+
+The `≤` order relation on `Float₀`.
+
+```lean
+instance : LE Float₀ where
+  le f₀ f₁ := f₀.val ≤ f₁.val
+```
+
+The `≤` relation is decidable.
+
+```lean
+instance (x y : Float₀) : Decidable (x ≤ y) :=
+  inferInstanceAs (Decidable (x.val ≤ y.val))
+```
+
+Addition of two `Float₀`s.
+
+```lean
+instance : Add Float₀ where
+  add := fun ⟨f₁,_⟩ ⟨f₂,_⟩ ↦ ⟨f₁ + f₂, sorry⟩
 ```
 
 Range restricted floats.
@@ -72,6 +129,29 @@ The product of the elements of a list. The base type must be an instance of `Mul
 ```lean
 def mul [Mul α] (as : List α) : α → α :=
   as.foldr (· * ·)
+```
+
+The maximum of the elements of a list. The base type must be an instance of `Max`, and the empty case is provided as an argument.
+
+```lean
+def max [Max α] (as : List α) : α → α :=
+  as.foldr Max.max
+```
+
+The minimum of the elements of a list. The base type must be an instance of `Min`, and the empty case is provided as an argument.
+
+```lean
+def min [Min α] (as : List α) : α → α :=
+  as.foldr Min.min
+```
+
+The minimum element of a list, returning default value for empty list.
+
+```lean
+def minimumD [Min α] (as : List α) (a : α) : α :=
+  match as.minimum? with
+  | none   => a
+  | some a => a
 ```
 
 Set equality relation on lists: same elements regardless of order or multiplicity.
@@ -111,31 +191,6 @@ Are the elements of a list in strict descending order?
 def descendingStrict [LT α] : List α → Prop
  | [] | [_] => True
  | a::b::as => a > b ∧ descendingStrict (b::as)
-```
-
-The values contained in a list of optional items.
-
-```lean
-def somes : List (Option α) → List α
-  | []           => []
-  | none :: as   => somes as
-  | some a :: as => a :: somes as
-```
-
-`Pairwise' R l` means that consecutive elements are `R`-related.
-```
-Pairwise' R [1, 2, 3] ↔ R 1 2 ∧ R 2 3
-```
-For example if `R = (·<·)` then it asserts that `l` is (strictly) ordered.
-
-```lean
-inductive Pairwise' (R : α → α → Prop) : List α → Prop
-  -- The empty list is vacuously pairwise related.
-  | zero : Pairwise' R []
-  -- The singleton list is vacuously pairwise related.
-  | one  : ∀ {a : α}, Pairwise' R [a]
-  -- `a :: b :: l` is `Pairwise' R` if `a` `R`-relates to `b` and `b :: l` is `Pairwise' R`.
-  | twos : ∀ {a : α} {b : α} {l : List α}, R a b → Pairwise' R (b :: l) → Pairwise' R (a :: b :: l)
 
 end List
 ```

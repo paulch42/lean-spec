@@ -345,7 +345,7 @@ It is then necessary to define a property `Satisfies`, external to the type defi
 that specifies when a flight allocation satisfies a TMI configuration (that is, the
 `FlightAllocation` is a valid solution to the `TMIConfig`).
 -/
-def Satisfies (cfg : TMIConfig) (alloc : FlightAllocation₂) : Prop :=
+def Satisfies (cfg : TMIConfig) (alloc : FlightAllocation₂) :=
   alloc.domain ⊆ cfg.flights.domain ∧
   (∀ slot ∈ alloc.range, slot.rwy ∈ cfg.rates.domain) ∧
   (∀ fsl ∈ alloc, ∀ fdep ∈ cfg.flights,

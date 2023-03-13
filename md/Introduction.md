@@ -163,7 +163,7 @@ The result is the number (`val`) and evidence the number is twice the argument
 situations Lean can coerce, automatically, an element of the subtype to the embedded
 data value. When this is not possible, the value must be referenced explicitly.
 
-We can then check that `double` does indeed implement the specification `Double₃`.
+We can now check that `double` does indeed implement the specification `Double₃`.
 That is `double n` is of type `Double₃ n` for any `n`:
 
 ```lean
