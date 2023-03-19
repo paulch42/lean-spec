@@ -269,7 +269,7 @@ The deviations for all flights that requested a take off during the period of th
 -/
 def deviations (cfg : TMIConfig) (alloc : FlightAllocation cfg) : List Duration :=
   let deviation (fdep : FlightId × FlightDeparture) : Duration :=
-        match find? fdep.1 alloc.gdp with
+        match alloc.gdp.find? fdep.1 with
         | none      => omittedDeviation cfg.period fdep.2.window
         | some slot => allocatedDeviation fdep.2 slot
   cfg.flights.toList.map deviation
@@ -374,7 +374,7 @@ are included in the TMI? That is, change `deviations` to:
 -/
 def deviations₁ (cfg : TMIConfig) (alloc : FlightAllocation cfg) : List Duration :=
   let deviation (fdep : FlightId × FlightDeparture) : Duration :=
-        match find? fdep.1 alloc.gdp with
+        match  alloc.gdp.find? fdep.1 with
         | none      => 0
         | some slot => allocatedDeviation fdep.2 slot
   cfg.flights.toList.map deviation
