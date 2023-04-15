@@ -254,7 +254,7 @@ def contains (i : Interval) (d : DTG) : Bool :=
 /-
 Instance of `Membership`; allows notation `dtg ∈ interval`.
 -/
-instance [BEq α] : Membership DTG Interval  where
+instance : Membership DTG Interval  where
   mem d i := i.contains d
 
 /-
