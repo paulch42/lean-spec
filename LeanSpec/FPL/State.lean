@@ -26,6 +26,7 @@ For auditing purposes it is necessary to record when a message is received.
 structure TimestampedMessage where
   timestamp : DTG
   message   : Message
+deriving DecidableEq
 
 /-
 The `<` order relation on `TimestampedMessage`. Order by time of reception.
@@ -55,6 +56,7 @@ structure FlightHistory where
   inv     : history ≠ [] ∧
   -- Messages are in descending timestamp order (i.e. most recent first).
             history.descendingStrict
+deriving DecidableEq
 
 /-
 The flight time derived from a flight history.
@@ -74,7 +76,7 @@ instance : IsFlight FlightHistory where
 A flight store is a mapping from flight identifiers to historical information about the flight.
 -/
 def FlightStore := FlightId ⟹ FlightHistory
-deriving Membership
+deriving DecidableEq, Membership
 
 /-
 ## Failed Messages
@@ -86,6 +88,7 @@ inductive FailureReason
   | badMatch       -- matching failed; could be failure to match, unexpected match,
                    -- or match with multiple entries
   | inconsistent   -- the content of the message, if applied, would be inconsistent
+deriving DecidableEq
 
 /-
 The information maintained about a received message that failed to process.
@@ -93,10 +96,11 @@ The information maintained about a received message that failed to process.
 structure FailedMessage where
   msg    : TimestampedMessage
   reason : FailureReason
-  fmatch : List FlightId  -- list of matching messages (if any) that caused the failure
+  fmatch : Set FlightId  -- set of matching messages (if any) that caused the failure
+deriving DecidableEq
 
 /-
-The `fmatch` item is the list of flights that matched the failed message. Such information
+The `fmatch` item is the set of flights that matched the failed message. Such information
 is valuable when investigating why messages could not be processed, and may suggest
 improvements to how matching is performed.
 
@@ -110,9 +114,10 @@ The `State` maintains all information about known flights. The state consists of
 structure State where
   active   : FlightStore
   inactive : FlightStore
-  failed   : List FailedMessage
+  failed   : Set FailedMessage
   -- Two different active flights cannot match.
   inv      : ∀ x ∈ active.domain, ∀y ∈ active.domain, x ≠ y → ¬ x.match y
+deriving DecidableEq
 
 namespace State
 
@@ -124,19 +129,13 @@ opportunity for false matches.
 
 The active flights in a state that match the supplied identifier.
 -/
-def activeMatch (fid : FlightId) (state : State) : FlightId ⟹ FlightHistory :=
-  state.active.filter fid.match
-
-/-
-The identifiers of the active flights in a state that match the supplied identifier.
--/
-def activeMatchId (fid : FlightId) (state : State) : List FlightId :=
-  (state.activeMatch fid).domain
+def activeMatches (fid : FlightId) (state : State) : Set FlightHistory :=
+  state.active.range.filter (fid.match ∘ IsFlight.idOf)
 
 /-
 The active flights in a state.
 -/
-def activeFlights (state : State) : List Flight :=
+def activeFlights (state : State) : Set Flight :=
   state.active.range.map (·.flight)
 
 /-
@@ -148,7 +147,7 @@ It is the most complex part of the specification.
 Specify the relationship between the pre and post state when a message cannot be processed, given the
 message, reason for failure, and any matching flights.
 -/
-def Failure (pre post : State) (ref : DTG) (msg : Message) (reason : FailureReason) (fids : List FlightId) :=
+def Failure (pre post : State) (ref : DTG) (msg : Message) (reason : FailureReason) (fids : Set FlightId) :=
   -- No change to active flights.
   post.active = pre.active ∧
   -- No change to inactive flights.
@@ -161,9 +160,9 @@ Specify the relationship between the pre and post state when a FPL causes a new 
 -/
 def FlightAdded (pre post : State) (ref : DTG) (fpl : FPL) :=
   -- New flight added to active store.
-  (∀ flt, flt ∈ post.active ↔ flt ∈ pre.active ∨ (flt.1 = IsFlight.idOf flt.2 ∧
-                                                  flt.2.flight = ToFlight.toFlight fpl ∧
-                                                  flt.2.history = [⟨ref, .fpl fpl⟩])) ∧
+  (∀ flt, flt ∈ post.active ↔ flt ∈ pre.active ∨ (flt.key = IsFlight.idOf flt.value ∧
+                                                  flt.value.flight = ToFlight.toFlight fpl ∧
+                                                  flt.value.history = [⟨ref, .fpl fpl⟩])) ∧
   -- No change to inactive flights.
   post.inactive = pre.inactive ∧
   -- No change to failed messages.
@@ -174,10 +173,10 @@ Specify the relationship between pre and post state for update of an existing fl
 -/
 def FlightUpdated (pre post : State) (ref : DTG) (prehist : FlightHistory) (msg : Message) (modFlight : Flight → Flight) :=
   -- Matching flight updated in active store.
-  (∀ flt, flt ∈ post.active ↔ let isMatch := flt.1.match (IsFlight.idOf msg)
-                              (isMatch ↔ flt.1 = IsFlight.idOf flt.2 ∧
-                                         flt.2.flight = modFlight prehist.flight ∧
-                                         flt.2.history = ⟨ref, msg⟩ :: prehist.history) ∧
+  (∀ flt, flt ∈ post.active ↔ let isMatch := flt.key.match (IsFlight.idOf msg)
+                              (isMatch ↔ flt.key = IsFlight.idOf flt.value ∧
+                                         flt.value.flight = modFlight prehist.flight ∧
+                                         flt.value.history = ⟨ref, msg⟩ :: prehist.history) ∧
                               (¬ isMatch ↔ flt ∈ pre.active)) ∧
   -- No change to inactive flights.
   post.inactive = pre.inactive ∧
@@ -190,13 +189,13 @@ The message must not match with an existing active flight.
 -/
 def ProcessAdd (ref : DTG) (fpl : FPL) (pre : State) :=
   { post : State // -- Match received message against active flights.
-                    match pre.activeMatchId (IsFlight.idOf fpl) with 
-                    | -- No matching flight.
-                      [] => -- New flight added to active store.
-                            FlightAdded pre post ref fpl
-                    | -- One or more matching flights.
-                      fs => -- Record as a failed message.
-                            Failure pre post ref (.fpl fpl) .badMatch fs }
+                    let fs := pre.activeMatches (IsFlight.idOf fpl)
+                    if fs = ∅ then
+                      -- New flight added to active store.
+                      FlightAdded pre post ref fpl
+                    else
+                      -- Record as a failed message.
+                      Failure pre post ref (.fpl fpl) .badMatch (fs.map IsFlight.idOf) }
 
 /-
 Process a message that, if successful, modifies an existing flight in the state.
@@ -204,21 +203,23 @@ The message must match with exactly one flight in the active store.
 -/
 def ProcessMod (ref : DTG) (msg : Message) (pre : State) (modFlight : Flight → Flight) :=
   { post : State // -- Match received message against active flights.
-                    match (pre.activeMatch (IsFlight.idOf msg)).val with
-                    | -- Single matching flight.
-                      .cons fid fh .nil =>
-                            let inSeq := -- Is the message temporally sequenced wrt matching flight?
-                                         ref > (fh.history.head fh.inv.left).timestamp
-                            let consistent := -- Is the message consistent wrt matching flight?
-                                              IsConsistent.isConsistent fh.flight msg
-                            (inSeq ∧ consistent → 
-                               FlightUpdated pre post ref fh msg modFlight) ∧
-                            (inSeq ∧ ¬ consistent →
-                               Failure pre post ref msg .inconsistent [fid]) ∧
-                            (¬ inSeq →
-                               Failure pre post ref msg .outOfSequence [fid])
-                    | -- No or multiple matching flights.
-                      fs  => Failure pre post ref msg .badMatch fs.domain }
+                    let fs := pre.activeMatches (IsFlight.idOf msg)
+                    if h : fs.card = 1 then
+                      -- Single matching flight.
+                      let fh := fs.select h
+                      let inSeq := -- Is the message temporally sequenced wrt matching flight?
+                                   ref > (fh.history.head fh.inv.left).timestamp
+                      let consistent := -- Is the message consistent wrt matching flight?
+                                        IsConsistent.isConsistent fh.flight msg
+                      (inSeq ∧ consistent → 
+                        FlightUpdated pre post ref fh msg modFlight) ∧
+                      (inSeq ∧ ¬ consistent →
+                        Failure pre post ref msg .inconsistent {IsFlight.idOf fh}) ∧
+                      (¬ inSeq →
+                        Failure pre post ref msg .outOfSequence {IsFlight.idOf fh})
+                    else
+                      -- No or multiple matching flights.
+                      Failure pre post ref msg .badMatch (fs.map IsFlight.idOf) }
 
 /-
 How a `CHG` modifies a `Flight`. A field in the CHG replaces the corresponding field in the
@@ -226,16 +227,14 @@ flight, otherwise the field in the flight is unchanged.
 -/
 def chgFlight (chg : CHG) (flt : Flight) : Flight :=
   let ⟨f7, f8, f9, f10, f13, f15, f16, f18, _⟩ := chg.f22 
-  { flt with f7  := chg.f22.f7.getD flt.f7,
-             f8  := chg.f22.f8.getD flt.f8,
-             f9  := chg.f22.f9.getD flt.f9,
-             f10 := chg.f22.f10.getD flt.f10,
-             f13 := chg.f22.f13.getD flt.f13,
-             f15 := chg.f22.f15.getD flt.f15,
-             f16 := chg.f22.f16.getD flt.f16,
-             f18 := match chg.f22.f18 with
-                    | none   => flt.f18
-                    | some x => x,
+  { flt with f7  := chg.f22.f7 ▹ flt.f7 ‖ id,
+             f8  := chg.f22.f8 ▹ flt.f8 ‖ id,
+             f9  := chg.f22.f9 ▹ flt.f9 ‖ id,
+             f10 := chg.f22.f10 ▹ flt.f10 ‖ id,
+             f13 := chg.f22.f13 ▹ flt.f13 ‖ id,
+             f15 := chg.f22.f15 ▹ flt.f15 ‖ id,
+             f16 := chg.f22.f16 ▹ flt.f16 ‖ id,
+             f18 := chg.f22.f18 ▹ flt.f18 ‖ id,
              inv := sorry }
 
 /-
@@ -270,9 +269,7 @@ How an `ARR` modifies a `Flight`.
 def arrFlight (arr : ARR) (flt : Flight) : Flight :=
   { flt with status := .completed,
              f13.f13b := (IsFlight.idOf arr).period.starts,
-             f16.f16a := match arr.f16 with
-                         | none => flt.f16.f16a
-                         | some ades => arr.f16
+             f16.f16a := arr.f16 ▹ flt.f16.f16a ‖ (fun _ ↦ arr.f16)
              f17 := arr.f17,
              inv := sorry }
 
@@ -326,7 +323,7 @@ def Purge (ref : DTG) (pre : State) :=
   let threshold := -- Threshold below which inactive and failed flights are purged.
                    ref - purgePeriod
   { post : State // post.active = pre.active ∧
-                    (∀ idh, idh ∈ post.inactive ↔ idh ∈ pre.inactive ∧ idh.1.period.ends > threshold) ∧
+                    (∀ idh, idh ∈ post.inactive ↔ idh ∈ pre.inactive ∧ idh.key.period.ends > threshold) ∧
                     (∀ f, f ∈ post.failed ↔ f ∈ pre.failed ∧ f.msg.timestamp > threshold) }
 
 /-
@@ -347,6 +344,7 @@ structure Query where
   adep : Option Doc7910.Designator
   eobt : Option Interval
   ades : Option Doc7910.Designator
+deriving DecidableEq
 
 /-
 Any of the query fields may be omitted, in which case any value matches that field.
@@ -354,22 +352,19 @@ Any of the query fields may be omitted, in which case any value matches that fie
 Does a flight match against a query?
 -/
 def QueryMatch (q : Query) (f : Flight) : Prop :=
-  MatchOpt q.acid f.f7.f7a ∧
-  MatchOpt q.adep f.f13.desigOf ∧
-  MatchEobt q.eobt f.f13.f13b ∧
-  MatchOpt q.ades f.f16.f16a
-where -- If query specifies `none`, anything matches, otherwise exact match required.
-      MatchOpt {α : Type} [DecidableEq α] (q : Option α) (f : Option α) : Prop :=
-        q.isNone ∨ q = f
-      -- Matching on departure time.
-      MatchEobt : Option Interval → DTG → Prop
-        | none, _     => True
-        | some i, dtg => i.contains dtg
+  -- ACID identical match
+  (q.acid ▹ (· = f.f7.f7a)) ∧
+  -- ADEP identical match
+  (q.adep ▹ (· = f.f13.desigOf)) ∧
+  -- EOBT match with interval in query.
+  (q.eobt ▹ (f.f13.f13b ∈ ·)) ∧
+  -- ADES identical match
+  (q.ades ▹ (· = f.f16.f16a))
 
 /-
 The active flights in the state that match a query.
 -/
 def MatchFlights (state : State) (query : Query) :=
-  { fs : List Flight // ∀ f, f ∈ fs ↔ f ∈ activeFlights state ∧ QueryMatch query f }
+  { fs : Set Flight // ∀ f, f ∈ fs ↔ f ∈ activeFlights state ∧ QueryMatch query f }
 
 end State

@@ -23,6 +23,7 @@ such limitations.
 def maxTextLength := 200
 
 def FreeText := Str 1 maxTextLength
+deriving DecidableEq
 ```
 
 ## Flight Related
@@ -112,12 +113,14 @@ is often the registration mark.
 
 ```lean
 def Registration := Str 2 7
+deriving DecidableEq
 ```
 
 The number of aircraft that participate if the flight is a formation.
 
 ```lean
 def NumberOfAircraft := NatMN 2 99
+deriving DecidableEq
 ```
 
 An aircraft type identifies the type of aircraft. For example, _A388_ is the type
@@ -126,18 +129,23 @@ designator for an Airbus A380-800. Such designators are documented in
 
 ```lean
 def Doc8643.Designator := Str 2 4
+deriving DecidableEq
 ```
 
-Not all aircraft types are listed in Doc 8643. In such cases they are presented as free text.
+Not all aircraft types are listed in Doc 8643. In such cases they are presented as a free text name.
 
 ```lean
-def AircraftType := Doc8643.Designator ⊕ FreeText
+inductive AircraftType
+  | desig (_ : Doc8643.Designator)
+  | name (_ : FreeText)
+deriving DecidableEq
 ```
 
 The aircraft address is six hexadecimal characters, and uniquely identifies the airframe.
 
 ```lean
 def AircraftAddress := Str 6 6
+deriving DecidableEq
 ```
 
 Performance data relating to the aircraft.
@@ -192,6 +200,7 @@ structure VerticalPositionOfAircraft where
   value : Float
   uom   : UnitOfVerticalDistance
   type  : FlightLevelOrAltitude
+deriving DecidableEq
 ```
 
 Unit of horizontal distance. For this specification only nautical miles is required.
@@ -199,6 +208,7 @@ Unit of horizontal distance. For this specification only nautical miles is requi
 ```lean
 inductive UnitOfHorizontalDistance
   | nm
+deriving DecidableEq
 ```
 
 Expression of horizontal distance.
@@ -207,6 +217,7 @@ Expression of horizontal distance.
 structure HorizontalDistance where
   value : Float₀
   uom   : UnitOfHorizontalDistance
+deriving DecidableEq
 ```
 
 ## Speed
@@ -243,12 +254,14 @@ structure AircraftSpeed where
   datum : SpeedDatum
   inv   : -- Ground speed cannot be expressed as a mach number
           datum = .gspd → uom ≠ .mach
+deriving DecidableEq
 ```
 
 True airspeed (TAS) is how fast the aircraft is moving through the body of air.
 
 ```lean
 def TrueAirspeed := { spd : AircraftSpeed // spd.datum = .tas }
+deriving DecidableEq
 ```
 
 ## Location Related
@@ -265,6 +278,7 @@ A waypoint is a named point used for identifying the path an aircraft follows.
 
 ```lean
 def Waypoint := Str 2 5
+deriving DecidableEq
 ```
 
 A relative point is a point indicated by its bearing and distance from a known point.
@@ -274,6 +288,7 @@ structure RelativePoint where
   point    : Waypoint
   bearing  : Geo.Direction
   distance : HorizontalDistance
+deriving DecidableEq
 ```
 
 Position can be expressed by:
@@ -287,6 +302,7 @@ inductive Position
   | geo (_ : Geo.Point)
   | wpt (_ : Waypoint)
   | rel (_ : RelativePoint)
+deriving DecidableEq
 ```
 
 The named waypoint in a position (if there is one).
@@ -304,12 +320,16 @@ Sometimes a descriptive name and lat/long are given.
 structure NameAndPosition where
   name     : FreeText
   position : Position
+deriving DecidableEq
 ```
 
 A landing site is identified by its ICAO designator or name and position.
 
 ```lean
-def LandingSite := Doc7910.Designator ⊕ NameAndPosition
+inductive LandingSite
+  | desig (_ : Doc7910.Designator)
+  | namePos (_ : NameAndPosition)
+deriving DecidableEq
 ```
 
 The air space through which aircraft transit is divided into areas called
@@ -317,6 +337,7 @@ Flight Information Regions (FIR). They are documented in ICAO Doc 7910.
 
 ```lean
 def Doc7910.FIRDesignator := Str 4 4
+deriving DecidableEq
 ```
 
 ## Equipment and Capabilities
@@ -433,6 +454,7 @@ Selective Calling (SELCAL) code.
 
 ```lean
 def SelcalCode := Str 4 4
+deriving DecidableEq
 ```
 
 ## Route Related
@@ -441,6 +463,7 @@ A designator for an air route (a fixed route in 3D space that an aircraft can fo
 
 ```lean
 def RouteDesignator := Str 2 7
+deriving DecidableEq
 ```
 
 ## Stakeholder Communication
@@ -449,12 +472,14 @@ Designator for an Air Traffic Services authority.
 
 ```lean
 def ATSUnit := Str 4 4
+deriving DecidableEq
 ```
 
 Address on the global Aeronautical Fixed Telecommunications Network (AFTN).
 
 ```lean
 def AFTNAddress := Str 8 8
+deriving DecidableEq
 
 end Core
 ```

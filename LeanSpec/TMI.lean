@@ -110,8 +110,10 @@ determination of departure slot allocation for a TMI. In a wider context, there 
 information relevant to a flight, but here we abstract only the necessary details.
 -/
 structure FlightDeparture where
+  -- The unique identifier of the flight.
+  fid       : FlightId
   -- The runways the flight is able to use.
-  canUse    : List RunwayDesig
+  canUse    : Set RunwayDesig
   -- The operator's preferred take off time for the flight.
   preferred : DTG
   -- The period of time during which the flight can reasonably take off.
@@ -120,6 +122,7 @@ structure FlightDeparture where
   inv₁      : canUse ≠ ∅
   -- The preferred take off time must occur within the window.
   inv₂      : preferred ∈ window
+deriving DecidableEq
 
 /-
 Notes:
@@ -139,8 +142,8 @@ Dependent types introduce the capability to directly encode constraints that rel
 elements of a type. The consequence is that instances of the type that structurally look
 like elements of the type are excluded because they fail to satisfy the constraints.
 
-In the case of `FlightDeparture`, the empty list is of type `List RunwayDesig`, but field
-`canUse` will never be the empty list as `inv₁` would not be satisfied. The consequence of
+In the case of `FlightDeparture`, the empty set is of type `Set RunwayDesig`, but field
+`canUse` will never be the empty set as `inv₁` would not be satisfied. The consequence of
 the invariant is a flight cannot be considered if it does not nominate at least one runway
 from which it can take off.
 
@@ -172,13 +175,13 @@ structure TMIConfig where
   -- The period of time over which the TMI runs.
   period  : Interval
   -- The flights that desire to take off within the period of the TMI.
-  flights : FlightId ⟹ FlightDeparture
+  flights : Set FlightDeparture
   -- The rates of the runways that participate in the TMI.
   rates   : RunwayRates
   -- The take off window of a proposed flight must fall within the TMI period.
-  inv₁    : ∀ f ∈ flights.range, f.window ∩ period ≠ ∅ 
+  inv₁    : ∀ f ∈ flights, f.window ∩ period ≠ ∅ 
   -- A flight must be able to take off from one of the participating runways.
-  inv₂    : ∀ f ∈ flights.range, f.canUse ∩ rates.domain ≠ ∅
+  inv₂    : ∀ f ∈ flights, f.canUse ∩ rates.domain ≠ ∅
 
 /-
 ### Slot
@@ -190,6 +193,7 @@ structure Slot where
   rwy  : RunwayDesig
   -- The target take off time.
   ttot : DTG
+deriving DecidableEq
 
 /-
 ### Flight Allocation
@@ -200,22 +204,21 @@ The result of running a departure TMI (GDP) is a map from flights to their slots
 structure FlightAllocation (cfg : TMIConfig) where
   -- The allocation of flight departures to slots.
   gdp  : FlightId ⟹ Slot
-  -- Any flight in the GDP must be drawn from the TMI configuration.
-  inv₁ : gdp.domain ⊆ cfg.flights.domain
-  -- The runway allocated to a flight must be a participant in the TMI.
+  -- Any flight in the GDP must be drawn from the flights in the TMI configuration.
+  inv₁ : gdp.domain ⊆ cfg.flights.map (·.fid)
+  -- The runway allocated to a flight must be drawn from the runways in the TMI.
   inv₂ : ∀ slot ∈ gdp.range, slot.rwy ∈ cfg.rates.domain
   -- The runway allocated to a flight must be one of the runways it can use.
   inv₃ : ∀ fsl ∈ gdp, ∀ fdep ∈ cfg.flights,
-           fsl.1 = fdep.1 → fsl.2.rwy ∈ fdep.2.canUse
+           fsl.key = fdep.fid → fsl.value.rwy ∈ fdep.canUse
   -- The target time allocated to a flight must fall within its window.
   inv₄ : ∀ fsl ∈ gdp, ∀ fdep ∈ cfg.flights,
-           fsl.1 = fdep.1 → fsl.2.ttot ∈ fdep.2.window
+           fsl.key = fdep.fid → fsl.value.ttot ∈ fdep.window
   -- The target time allocated to a flight must fall within the TMI period.
   inv₅ : ∀ slot ∈ gdp.range, slot.ttot ∈ cfg.period
   -- Two flights allocated the same runway must depart at least the minimum duration apart.
-  inv₆ : ∀ fsl₁ ∈ gdp, ∀ fsl₂ ∈ gdp, ∀ fr ∈ cfg.rates,
-           fsl₁.1 ≠ fsl₂.1 ∧ fsl₁.2.rwy = fsl₂.2.rwy ∧ fr.1 = fsl₁.2.rwy → 
-             fsl₁.2.ttot - fsl₂.2.ttot ≥ fr.2
+  inv₆ : ∀ fsl₁ ∈ gdp, ∀ fsl₂ ∈ gdp, fsl₁.key ≠ fsl₂.key ∧ fsl₁.value.rwy = fsl₂.value.rwy →
+           ∀ fr ∈ cfg.rates, fr.key = fsl₁.value.rwy → fsl₁.value.ttot - fsl₂.value.ttot ≥ fr.value
 
 /-
 As noted earlier, structures can contain constraints to which the instances must adhere.
@@ -265,21 +268,14 @@ def omittedDeviation (period window : Interval) : Duration :=
   if window ⊆ period then d else d/2
 
 /-
-The deviations for all flights that requested a take off during the period of the TMI.
--/
-def deviations (cfg : TMIConfig) (alloc : FlightAllocation cfg) : List Duration :=
-  let deviation (fdep : FlightId × FlightDeparture) : Duration :=
-        match alloc.gdp.find? fdep.1 with
-        | none      => omittedDeviation cfg.period fdep.2.window
-        | some slot => allocatedDeviation fdep.2 slot
-  cfg.flights.toList.map deviation
-
-/-
 The `cost` of a TMI is the sum of the costs of the flights that requested a take off
 during the TMI.
 -/
-def cost (cfg : TMIConfig) (alloc : FlightAllocation cfg) : Duration :=
-  (deviations cfg alloc).add 0
+def FlightAllocation.cost (cfg : TMIConfig) (alloc : FlightAllocation cfg) : Duration :=
+  let deviation (fdep : FlightDeparture) : Duration :=
+        alloc.gdp.find? fdep.fid ▹ omittedDeviation cfg.period fdep.window
+                                 ‖ (allocatedDeviation fdep ·)
+  cfg.flights.add' deviation 0
 
 /-
 ### Departure TMI
@@ -289,7 +285,7 @@ Combining the components above, the departure TMI can be specified as:
 necessarily unique) allocation whose cost is no greater than any other.
 -/
 def DepartureTMI (cfg : TMIConfig) :=
-  { opt : FlightAllocation cfg // ∀ alloc : FlightAllocation cfg, cost cfg opt ≤ cost cfg alloc }
+  { opt : FlightAllocation cfg // ∀ alloc : FlightAllocation cfg, opt.cost cfg ≤ alloc.cost cfg }
 
 /-
 ## Further Discussion
@@ -306,21 +302,20 @@ structure FlightAllocation₁ (cfg : TMIConfig) where
   -- The allocation of flights to slots.
   gdp  : FlightId ⟹ Slot
   -- Any flight in the GDP must be drawn from the TMI configuration.
-  inv₁ : gdp.domain ⊆ cfg.flights.domain
+  inv₁ : gdp.domain ⊆ cfg.flights.map (·.fid)
   -- The runway allocated to a flight must be a participant in the TMI.
   -- The target time allocated to a flight must fall within the TMI period.
   -- The runway allocated to a flight must be one of the runways it can use.
   -- The target time allocated to a flight must fall within its window.
   inv₂ : ∀ fsl ∈ gdp,
-           fsl.2.rwy ∈ cfg.rates.domain ∧
-           fsl.2.ttot ∈ cfg.period ∧
-           ∀ fdep ∈ cfg.flights, fsl.1 = fdep.1 →
-             fsl.2.rwy ∈ fdep.2.canUse ∧
-             fsl.2.ttot ∈ fdep.2.window
+           fsl.value.rwy ∈ cfg.rates.domain ∧
+           fsl.value.ttot ∈ cfg.period ∧
+           ∀ fdep ∈ cfg.flights, fsl.key = fdep.fid →
+             fsl.value.rwy ∈ fdep.canUse ∧
+             fsl.value.ttot ∈ fdep.window
   -- Two flights allocated the same runway must depart at least the minimum duration apart.
-  inv₃ : ∀ fsl₁ ∈ gdp, ∀ fsl₂ ∈ gdp, ∀ fr ∈ cfg.rates,
-           fsl₁.1 ≠ fsl₂.1 ∧ fsl₁.2.rwy = fsl₂.2.rwy ∧ fr.1 = fsl₁.2.rwy → 
-             fsl₁.2.ttot - fsl₂.2.ttot ≥ fr.2
+  inv₃ : ∀ fsl₁ ∈ gdp, ∀ fsl₂ ∈ gdp, fsl₁.key ≠ fsl₂.key ∧ fsl₁.value.rwy = fsl₂.value.rwy →
+           ∀ fr ∈ cfg.rates, fr.key = fsl₁.value.rwy → fsl₁.value.ttot - fsl₂.value.ttot ≥ fr.value
 
 /-
 There are now three rather than six invariants, and it is more concise. The separate approach
@@ -346,16 +341,15 @@ that specifies when a flight allocation satisfies a TMI configuration (that is, 
 `FlightAllocation` is a valid solution to the `TMIConfig`).
 -/
 def Satisfies (cfg : TMIConfig) (alloc : FlightAllocation₂) :=
-  alloc.domain ⊆ cfg.flights.domain ∧
+  alloc.domain ⊆ cfg.flights.map (·.fid) ∧
   (∀ slot ∈ alloc.range, slot.rwy ∈ cfg.rates.domain) ∧
   (∀ fsl ∈ alloc, ∀ fdep ∈ cfg.flights,
-    fsl.1 = fdep.1 → fsl.2.rwy ∈ fdep.2.canUse) ∧
+    fsl.key = fdep.fid → fsl.value.rwy ∈ fdep.canUse) ∧
   (∀ fsl ∈ alloc, ∀ fdep ∈ cfg.flights,
-    fsl.1 = fdep.1 → fsl.2.ttot ∈ fdep.2.window) ∧
+    fsl.key = fdep.fid → fsl.value.ttot ∈ fdep.window) ∧
   (∀ slot ∈ alloc.range, slot.ttot ∈ cfg.period) ∧
-  (∀ fsl₁ ∈ alloc, ∀ fsl₂ ∈ alloc, ∀ fr ∈ cfg.rates,
-    fsl₁.1 ≠ fsl₂.1 ∧ fsl₁.2.rwy = fsl₂.2.rwy ∧ fr.1 = fsl₁.2.rwy → 
-      fsl₁.2.ttot - fsl₂.2.ttot ≥ fr.2)
+  (∀ fsl₁ ∈ alloc, ∀ fsl₂ ∈ alloc, fsl₁.key ≠ fsl₂.key ∧ fsl₁.value.rwy = fsl₂.value.rwy →
+     ∀ fr ∈ cfg.rates, fr.key = fsl₁.value.rwy → fsl₁.value.ttot - fsl₂.value.ttot ≥ fr.value)
 
 /-
 Note that, other than some minor syntactic differences, the constraints expressed by
@@ -370,21 +364,20 @@ functions over those types tends to be simpler.
 
 - Small changes to specifications can have major effects. What would happen if the
 specification was changed such that the cost function only considered flights that
-are included in the TMI? That is, change `deviations` to:
+are included in the TMI? That is, change `cost` to:
 -/
-def deviations₁ (cfg : TMIConfig) (alloc : FlightAllocation cfg) : List Duration :=
-  let deviation (fdep : FlightId × FlightDeparture) : Duration :=
-        match  alloc.gdp.find? fdep.1 with
-        | none      => 0
-        | some slot => allocatedDeviation fdep.2 slot
-  cfg.flights.toList.map deviation
+def FlightAllocation.cost₁ (cfg : TMIConfig) (alloc : FlightAllocation cfg) : Duration :=
+  let deviation (fdep : FlightDeparture) : Duration :=
+        alloc.gdp.find? fdep.fid ▹ 0 ‖ (allocatedDeviation fdep ·)
+  cfg.flights.add' deviation 0
+
 /-
 - There has been a requirements change. A flight must not take off prior to its
 preferred time, though it can after its preferred time. Change the specification to
 satisfy the new requirement.
 
 - It is always instructive to consider boundary cases. Say a TMI was run with a configuration
-in which no flights are specified. That is, `flights : FlightId ⟹ FlightDeparture` is the empty map.
+in which no flights are specified. That is, `flights : Set FlightDeparture` is the empty set.
 Is a solution that meets the specification still possible?
 
 - Another boundary case is when no runways rates are specified. That is, `rates : RunwayRates` is

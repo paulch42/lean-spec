@@ -45,6 +45,7 @@ structure FPL where
         F16F18Altn f16 f18 ∧
         F16F18Eet f16 f18 ∧
         F16F18Dle f16 f18
+deriving DecidableEq
 ```
 
 The flight time derived from a FPL.
@@ -78,6 +79,7 @@ structure CHG where
   f13 : Field13
   f16 : Field16a
   f22 : Field22
+deriving DecidableEq
 ```
 
 Fields 7, 13 and 16 are used for matching, field 22 specifies the modification.
@@ -133,6 +135,7 @@ structure CNL where
   f7  : Field7
   f13 : Field13
   f16 : Field16a
+deriving DecidableEq
 ```
 
 The flight time derived from a CNL.
@@ -158,6 +161,7 @@ structure DLA where
   f7  : Field7
   f13 : Field13
   f16 : Field16a
+deriving DecidableEq
 ```
 
 Field 13b contains the new estimated departure time.
@@ -185,6 +189,7 @@ structure DEP where
   f7  : Field7
   f13 : Field13
   f16 : Field16a
+deriving DecidableEq
 ```
 
 Field 13b contains the actual time of departure.
@@ -214,6 +219,7 @@ structure ARR where
   f16 : Field16a
   f17 : Field17
   inv : F16F17Dest f16 f17
+deriving DecidableEq
 ```
 
 The flight time derived from an ARR.
@@ -221,9 +227,7 @@ The flight time derived from an ARR.
 ```lean
 instance : FlightTime ARR where
   period arr := let dest := -- Use the planned destination if available, otherwise the actual arrival.
-                            match arr.f16, arr.f17.f17a with
-                            | none, actual  => actual
-                            | planned, _    => planned
+                            arr.f16 ▹ arr.f17.f17a ‖ id
                 adepAdesFlightTime arr.f13.f13a arr.f13.f13b dest none
 ```
 
@@ -250,6 +254,7 @@ inductive Message
   | dla (_ : DLA)
   | dep (_ : DEP)
   | arr (_ : ARR)
+deriving DecidableEq
 ```
 
 The flight time derived from a message.

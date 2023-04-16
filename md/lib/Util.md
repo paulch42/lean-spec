@@ -13,11 +13,17 @@ import Std.Data.AssocList
 
 ## Restricted Basic Types
 
+### Str
+
 Length constrained strings.
 
 ```lean
 def Str (m n : Nat) := { s : String // m ≤ s.length ∧ s.length ≤ n }
+```
 
+Equality of `Str` is decidable.
+
+```lean
 instance : DecidableEq (Str m n) :=
   sorry
 ```
@@ -36,24 +42,40 @@ instance (m n : Nat) (x y : Str m n) : Decidable (x < y) :=
   inferInstanceAs (Decidable (x.val < y.val))
 ```
 
+### Nat₁
+
 Non-zero natural numbers.
 
 ```lean
 def Nat₁ := { n : Nat // n ≠ 0 }
 ```
 
+### NatMN
+
 Range restricted natural numbers.
+Lower limit is inclusive, upper limit is exclusive.
 
 ```lean
 def NatMN (m n : Nat) := { x : Nat // m ≤ x ∧ x < n }
 ```
 
-State decidable equality for `Float`.
+Equality of `NatMN` is decidable.
+
+```lean
+instance : DecidableEq (NatMN m n) :=
+  sorry
+```
+
+### Float
+
+Equality of `Float` is decidable.
 
 ```lean
 instance : DecidableEq Float :=
   sorry
 ```
+
+### Float₀
 
 Non-negative floats.
 
@@ -97,10 +119,15 @@ instance : Add Float₀ where
   add := fun ⟨f₁,_⟩ ⟨f₂,_⟩ ↦ ⟨f₁ + f₂, sorry⟩
 ```
 
+### FloatMN
+
 Range restricted floats.
 
 ```lean
 def FloatMN (m n : Float) := { x : Float // m ≤ x ∧ x < n }
+
+instance : DecidableEq (FloatMN m n) :=
+  sorry
 ```
 
 ## List
@@ -195,187 +222,305 @@ def descendingStrict [LT α] : List α → Prop
 end List
 ```
 
-## AssocList
+## Set
 
-Elements of type `AssocList` are lists whose elements are key/value pairs.
-`AssocList` is defined in [std4](https://github.com/leanprover/std4).
+Finite sets.
+
+Define a set as a list without duplicates.
+The functions on sets must ensure they are order agnostic.
 
 ```lean
-namespace Std.AssocList
+def Set (α : Type) [DecidableEq α] := { as : List α // as.Nodup }
+
+instance [DecidableEq α] : EmptyCollection (Set α) where
+  emptyCollection := ⟨[], sorry⟩
+
+instance [DecidableEq α] : Membership α (Set α) where
+  mem a as := a ∈ as.val
+
+instance [DecidableEq α] : HasSubset (Set α) where
+  Subset s₁ s₂ := ∀ a ∈ s₁, a ∈ s₂   
+
+instance [DecidableEq α] : HasSSubset (Set α) where
+  SSubset s₁ s₂ := s₁ ⊆ s₂ ∧ ∃ a ∈ s₁, a ∉ s₂ 
+
+instance [DecidableEq α] : Union (Set α) where
+  union s₁ s₂ := ⟨(s₁.val ++ s₂.val).eraseDup, sorry⟩
+
+instance [DecidableEq α] : Inter (Set α) where
+  inter s₁ s₂ := sorry
+
+instance [DecidableEq α] : SDiff (Set α) where
+  sdiff s₁ s₂ := sorry
+
+instance [DecidableEq α] : Insert (α : Type) (Set α) where
+  insert a as := ⟨if a ∈ as.val then as.val else a :: as.val, sorry⟩  
+
+instance [DecidableEq α] : Singleton (α: Type) (Set α) where
+  singleton a := ⟨[a], sorry⟩
+
+instance [DecidableEq α] : DecidableEq (Set α) :=
+  sorry
+
+namespace Set
 ```
 
-The domain of an `AssocList` is the list of the first elements in the pairs.
+The number of elements in a set.
 
 ```lean
-def domain (al : AssocList α β) : List α :=
-  al.toList.map (·.fst)
+def card [DecidableEq α] (s : Set α) : Nat :=
+  s.val.length
 ```
 
-The range of an `AssocList` is the list of the second elements in the pairs.
+Map a function over a set.
+The result set may have fewer elements than the argument set.
 
 ```lean
-def range (al : AssocList α β) : List β :=
-   al.toList.map (·.snd)
+def map [DecidableEq α] [DecidableEq β] (f : α → β) (as : Set α) : Set β :=
+  ⟨(as.val.map f).eraseDup, sorry⟩
 ```
 
-An `AssocList` is a finite map if there are no duplicate elements in its domain.
+Filter the elements in a set that satisfy a boolean predicate.
 
 ```lean
-def isMap [BEq α] (al : AssocList α β) : Bool :=
-  let dom := al.domain
-  dom.length = dom.eraseDups.length
+def filter [DecidableEq α] (p : α → Bool) (as : Set α) : Set α :=
+  ⟨as.val.filter p, sorry⟩
 ```
 
-Find the value associated with a key, knowing the key is in the list.
+Filter the elements in a set that satisfy a proposition.
 
 ```lean
-def find [BEq α] (a : α) (al : AssocList α β) (h : al.contains a) :  β :=
+def filterp [DecidableEq α] (p : α → Prop) (as : Set α) : Set α :=
+  sorry--⟨as.val.filter p, sorry⟩
+```
+
+Fold a binary function over a set.
+
+```lean
+def foldr [DecidableEq α] (f : α → β → β) (init : β) (as : Set α) : β :=
+  as.val.foldr f init
+```
+
+Seelct the unique element from a singleton set.
+
+```lean
+def select [DecidableEq α] : (as : Set α) → (as.card = 1) → α :=
   sorry
 ```
 
-Find the entry (key and value) associated with a key, knowing the key is in the list.
+The minimum element of a set, returning default value for empty set.
 
 ```lean
-def findEntry [BEq α] (a : α) (al : AssocList α β) (h : al.contains a) : α × β :=
-  sorry
+def minimumD [DecidableEq α] [Min α] (as : Set α) (a : α) : α :=
+  as.val.minimumD a
 ```
 
-Filter an association list by a predicate on the key.
+The sum of the elements of a set. The base type must be an instance of `Add`, and the identity is provided as an argument.
 
 ```lean
-def filter [BEq α] (p : α → Bool) : AssocList α β → AssocList α β
-  | nil          => nil
-  | cons a b abs => if p a then cons a b (abs.filter p) else abs.filter p
+def add [DecidableEq α] [Add α] (as : Set α) : α → α :=
+  as.foldr (· + ·)
+```
 
-end Std.AssocList
+The sum of the elements of a set under the image of a function.
+The base type must be an instance of `Add`, and the identity is provided as an argument.
+
+```lean
+def add' [DecidableEq α] [Add β] (as : Set α) (f : α → β) : β → β :=
+  as.foldr (f · + ·)
+```
+
+Instance of `Sep`; allows notation `{ a ∈ A | P a }`.
+
+```lean
+instance [DecidableEq α] : Sep (α : Type) (Set α) where
+  sep p as := filterp p as
+
+end Set
+```
+
+The set whose elements are those of a given list.
+
+```lean
+def List.toSet [DecidableEq α] (as : List α) : Set α :=
+   ⟨as.eraseDup, sorry⟩
 ```
 
 ## Map
 
 Definition of a type of finite maps.
 
-Map is defined in terms of association lists in which keys are associated with
-only one value.
+Map is defined in terms of a set of key/value of pairs in which the keys are unique.
 
 ```lean
 namespace Std
 ```
 
-A `Map` is an `AssocList` whose domain contains no duplicates.
+An entry in a finite map is an association of a key with a value.
 
 ```lean
-def Map α β [BEq α] := { al : AssocList α β // al.isMap }
+structure Map.Entry (α β : Type) where
+  key   : α
+  value : β
+deriving DecidableEq
+```
+
+A `Map` is a `Set` of pairs such that the first element of each pair is unique.
+
+```lean
+def Map α β [DecidableEq α] [DecidableEq β] := { s : Set (Map.Entry α β) // s.card = (s.map (·.key)).card }
 ```
 
 Infix operator for finite maps. Precedence just lower than `×`.
 
 ```lean
 infixr:34 " ⟹ "  => Map
+```
 
-instance [BEq α] : EmptyCollection (α ⟹ β) where
+Equality of `Map` is decidable.
+
+```lean
+instance [DecidableEq α] [DecidableEq β] : DecidableEq (α ⟹ β) :=
+  sorry
+```
+
+Instance of `EmptyCollection`; allows notation `∅` for empty map.
+
+```lean
+instance [DecidableEq α] [DecidableEq β] : EmptyCollection (α ⟹ β) where
   emptyCollection := ⟨∅, rfl⟩
 ```
 
-Many of the functions are `Map` versions of the corresponding `AssocList` functions.
-
-Question: could some of these definitions be avoided through coercion?
+Instance of `Union`; allows notation `m₁ ∪ m₂`.
+If `m₁` and `m₂` have a common key, `m₁` takes precedence.
 
 ```lean
+instance [DecidableEq α] [DecidableEq β] : Union (α ⟹ β) where
+  union s₁ s₂ := sorry
+```
+
+Instance of `Inter`; allows notation `m₁ ∩ m₂`.
+The values in the result are drawn from `m₁`.
+
+```lean
+instance [DecidableEq α] [DecidableEq β] : Inter (α ⟹ β) where
+  inter s₁ s₂ := sorry
+
 namespace Map
-```
-
-Does a map contain a key?
-
-```lean
-def contains [BEq α] (a : α) (m : α ⟹ β) : Bool :=
-  m.val.contains a
-```
-
-Remove an entry with a key from a map.
-
-```lean
-def erase [BEq α] (m : α ⟹ β) (a : α) : α ⟹ β :=
-  ⟨m.val.erase a, sorry⟩
-```
-
-Add an item to a map.
-
-```lean
-def add [BEq α] (m : α ⟹ β) (a : α) (b : β) : α ⟹ β :=
-  ⟨(m.erase a).val.cons a b, sorry⟩
-```
-
-Find the entry (key and value) associated with a key, if in the map.
-
-```lean
-def findEntry? [BEq α] (a : α) (m : α ⟹ β) : Option (α × β) :=
-  m.val.findEntry? a
-```
-
-Find the entry (key and value) associated with a key, knowing the key is in the map.
-
-```lean
-def findEntry [BEq α] (a : α) (m : α ⟹ β) (h : m.contains a) : α × β :=
-  m.val.findEntry a h
-```
-
-Find the value associated with a key, if the key is in the map.
-
-```lean
-def find? [BEq α] (a : α) (m : α ⟹ β) : Option β :=
-  m.val.find? a
-```
-
-Find the value associated with a key, knowing the key is in the map.
-
-```lean
-def find [BEq α] (a : α) (m : α ⟹ β) (h : m.contains a) :  β :=
-  (m.findEntry a h).2
 ```
 
 `Map` is an instance of `Membership`, allowing notation `entry ∈ map`.
 Note membership is based on the full entry, not just the key.
 
 ```lean
-instance [BEq α] : Membership (α × β) (α ⟹ β)  where
-  mem ab m := (m.findEntry? ab.1).isSome
+instance [DecidableEq α] [DecidableEq β] : Membership (Entry α β) (α ⟹ β)  where
+  mem ab m := sorry
 ```
 
-The list of pairs extracted from a map.
+Does a map contain a key?
 
 ```lean
-def toList [BEq α] (m : α ⟹ β) : List (α × β) :=
-  m.val.toList
+def contains [DecidableEq α] [DecidableEq β] (a : α) (m : α ⟹ β) : Prop :=
+  ∃ x ∈ m, x.key = a
+```
+
+Remove an entry with a key from a map.
+
+```lean
+def erase [DecidableEq α] [DecidableEq β] (m : α ⟹ β) (a : α) : α ⟹ β :=
+  sorry
+```
+
+Add an item to a map.
+
+```lean
+def insert [DecidableEq α] [DecidableEq β] (m : α ⟹ β) (a : α) (b : β) : α ⟹ β :=
+  sorry
+```
+
+Find the entry (key and value) associated with a key, if in the map.
+
+```lean
+def findEntry?  [DecidableEq α] [DecidableEq β] (a : α) (m : α ⟹ β) : Option (Entry α β) :=
+  sorry
+```
+
+Find the entry (key and value) associated with a key, knowing the key is in the map.
+
+```lean
+def findEntry [DecidableEq α] [DecidableEq β] (a : α) (m : α ⟹ β) (h : m.contains a) : Entry α β :=
+  sorry
+```
+
+Find the value associated with a key, if the key is in the map.
+
+```lean
+def find? [DecidableEq α] [DecidableEq β] (a : α) (m : α ⟹ β) : Option β :=
+  sorry
+```
+
+Find the value associated with a key, knowing the key is in the map.
+
+```lean
+def find [DecidableEq α] [DecidableEq β] (a : α) (m : α ⟹ β) (h : m.contains a) :  β :=
+  (m.findEntry a h).value
 ```
 
 Is a map empty?
 
 ```lean
-def isEmpty [BEq α] (m : α ⟹ β) : Bool :=
-  m.val.isEmpty
+def isEmpty [DecidableEq α] [DecidableEq β] (m : α ⟹ β) : Prop :=
+  m = ∅
 ```
 
 Filter a map by a predicate on the key.
 
 ```lean
-def filter [BEq α] (p : α → Bool) (m : α ⟹ β) : α ⟹ β :=
-  ⟨m.val.filter p, sorry⟩
+def filter [DecidableEq α] [DecidableEq β] (p : α → Bool) (m : α ⟹ β) : α ⟹ β :=
+  sorry
 ```
 
 The domain of a finite map: guaranteed to contain no duplicates.
 
 ```lean
-def domain {α: Type} [BEq α] (m : α ⟹ β) : List α :=
-  m.val.domain
+def domain {α: Type} [DecidableEq α] [DecidableEq β] (m : α ⟹ β) : Set α :=
+  sorry
 ```
 
 The range of a finite map.
 
 ```lean
-def range [BEq α] (m : α ⟹ β) : List β :=
-  m.val.range 
+def range [DecidableEq α] [DecidableEq β] (m : α ⟹ β) : Set β :=
+  sorry 
 
 end Map
+```
+
+## Option
+
+The following notation captures the common pattern:
+```
+match term with
+| none   => noneResult
+| some x => someResult x
+```
+If an `Option` is `none`, return a fixed expression, otherwise apply a function to the `some` value.
+
+```lean
+notation t "▹" n "‖" s => match t with | none => n | some x => s x
+```
+
+The following notation captures the common pattern:
+```
+match term with
+| none   => True
+| some x => p x
+```
+Does the value embedded in an `Option`, if there is such a value, satisfy a predicate.
+If there is no value default to `True`. Special case of previous notation.
+
+```lean
+notation t "▹" p => match t with | none => True | some x => p x
 
 end Std
 ```

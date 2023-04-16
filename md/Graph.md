@@ -37,10 +37,10 @@ Since the list is guaranteed non-empty, functions that extract the first and las
 total.
 
 ```lean
-def first : List₁ α → α
+def List₁.first : List₁ α → α
   | ⟨a::_, _⟩ => a 
 
-def last : List₁ α → α
+def List₁.last : List₁ α → α
   | ⟨[a], _⟩      => a
   | ⟨_::a::as, _⟩ => last ⟨a::as, by simp⟩
 ```
@@ -56,7 +56,7 @@ abbrev Node := String
 example : Node := "N1"
 ```
 
-An edge has a start and an end node, hence is directed, and a cost to traverse from
+An edge has a start and an end node, hence is directed, and has a cost to traverse from
 the start to the end.
 
 ```lean
@@ -64,6 +64,7 @@ structure Edge where
   starts : Node
   ends   : Node
   cost   : Nat
+deriving DecidableEq
 
 example : Edge := {
   starts := "N1"
@@ -72,12 +73,12 @@ example : Edge := {
 }
 ```
 
-A graph is simply a non-empty list of edges. We don't consider empty graphs here.
+A graph is simply a set of edges.
 
 ```lean
-abbrev Graph := List₁ Edge
+abbrev Graph := Set Edge
 
-def exampleGraph : Graph := ⟨[⟨"N1","N2",4⟩, ⟨"N1","N3",7⟩, ⟨"N2","N3",2⟩], by simp⟩
+def exampleGraph : Graph := {⟨"N1","N2",4⟩, ⟨"N1","N3",7⟩, ⟨"N2","N3",2⟩}
 ```
 
 With the above definitions we can define a path over a graph.
@@ -85,7 +86,7 @@ With the above definitions we can define a path over a graph.
 ```lean
 structure Path (g : Graph) where
   path : List₁ Edge
-  inv  : path ⊆ g ∧ path.list.Chain' (·.ends = ·.starts)
+  inv  : path.list ⊆ g.val ∧ path.list.Chain' (·.ends = ·.starts)
 ```
 
 `Path` is dependent on `Graph`, so given `g : Graph`, `Path g` is the type of paths
@@ -109,11 +110,11 @@ Let's define a couple of convenience functions to identify the nodes at the star
 of a path.
 
 ```lean
-def pathStart (p : Path g) : Node :=
-  (first p.path).starts
+def Path.start (p : Path g) : Node :=
+  p.path.first.starts
 
-def pathEnd (p : Path g) : Node :=
-  (last p.path).ends
+def Path.end (p : Path g) : Node :=
+  p.path.last.ends
 ```
 
 An example of a path, with respect to graph `exampleGraph` defined earlier, is:
@@ -140,7 +141,7 @@ might be:
 
 ```lean
 def FindPath₁ (g : Graph) (s e : Node) :=
-  { p : Path g // pathStart p = s ∧ pathEnd p = e }
+  { p : Path g // p.start = s ∧ p.end = e }
 ```
 
 Given a graph `g` and a pair of nodes `s` and `e`, find a path over `g` whose start is `s` and end is `e`.
@@ -154,7 +155,7 @@ What about:
 
 ```lean
 def FindPath₂ (g : Graph) (s e : Node) :=
-  Option { p : Path g // pathStart p = s ∧ pathEnd p = e }
+  Option { p : Path g // p.start = s ∧ p.end = e }
 ```
 
 This at least accommodates the failure cases described above, but it has a trivial implementation that
@@ -162,7 +163,7 @@ is not what is intended:
 
 ```lean
 def findPath (g : Graph) (s e : Node) :
-  Option { p : Path g // pathStart p = s ∧ pathEnd p = e } := none
+  Option { p : Path g // p.start = s ∧ p.end = e } := none
 ```
 
 If we always choose the `none` option the specification is satisfied.
@@ -171,7 +172,7 @@ Going back to the first attempt, `FindPath₁`, let's give it a more meaningful 
 guarantee a solution exists:
 
 ```lean
-def IsPath (g : Graph) (s e : Node) := { p : Path g // pathStart p = s ∧ pathEnd p = e }
+def IsPath (g : Graph) (s e : Node) := { p : Path g // p.start = s ∧ p.end = e }
 ```
 
 In the case a path exists we want to create an element of `IsPath g s e` (the type of paths from
@@ -194,7 +195,7 @@ If no path exists, evidence is returned as the right injection.
 The cost of a path is the sum of the cost of the edges in the path.
 
 ```lean
-def pathCost (p : Path g) : Nat :=
+def Path.cost (p : Path g) : Nat :=
   (p.path.list.map (·.cost)).add 0
 ```
 
@@ -203,7 +204,7 @@ the same pattern as `Knapsack`:
 
 ```lean
 def ShortestPath (g : Graph) (s e : Node) (_ : IsPath g s e) :=
-  { p : IsPath g s e // ∀ q : IsPath g s e, pathCost p.val ≤ pathCost q.val }
+  { p : IsPath g s e // ∀ q : IsPath g s e, p.val.cost ≤ q.val.cost }
 ```
 
 The solution is a path over `g` from `s` to `e` with the constraint that any other path

@@ -38,7 +38,7 @@ Two identifiers match if they have:
 
 ```lean
 def FlightId.match : FlightId → FlightId → Bool
-  | ⟨a₁,d₁,p₁⟩, ⟨a₂,d₂,p₂⟩ => a₁ = a₂ ∧ d₁ = d₂ ∧ p₁.overlap p₂
+  | ⟨a₁,d₁,p₁⟩, ⟨a₂,d₂,p₂⟩ => a₁ = a₂ ∧ d₁ = d₂ ∧ p₁ ∩ p₂ ≠ ∅
 ```
 
 Instances of class `FlightTime` are entities that have an identifiable period of flight.
@@ -93,6 +93,7 @@ inductive FlightStatus
   | airborne
   | cancelled
   | completed
+deriving DecidableEq
 ```
 
 ## Flight Information Content
@@ -134,6 +135,7 @@ structure Flight where
            F16F17Dest f16.f16a f17 ∧
            -- Field 17 is populated if and only if the flight is completed.
            f17.isSome ↔ status = .completed
+deriving DecidableEq
 ```
 
 Note there are many constraints to which the flight data must adhere. This is a good example
