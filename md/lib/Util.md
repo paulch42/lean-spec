@@ -80,7 +80,7 @@ instance : DecidableEq Float :=
 Non-negative floats.
 
 ```lean
-def Float₀ := { x : Float // x ≥ 0 }
+def Float₀ := { x : Float // 0 ≤ x }
 deriving DecidableEq
 ```
 
@@ -116,7 +116,7 @@ Addition of two `Float₀`s.
 
 ```lean
 instance : Add Float₀ where
-  add := fun ⟨f₁,_⟩ ⟨f₂,_⟩ ↦ ⟨f₁ + f₂, sorry⟩
+  add := fun ⟨f₁,p₁⟩ ⟨f₂,p₂⟩ ↦ ⟨f₁ + f₂, sorry⟩
 ```
 
 ### FloatMN

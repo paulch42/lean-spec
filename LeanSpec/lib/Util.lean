@@ -72,7 +72,7 @@ instance : DecidableEq Float :=
 
 Non-negative floats.
 -/
-def Float₀ := { x : Float // x ≥ 0 }
+def Float₀ := { x : Float // 0 ≤ x }
 deriving DecidableEq
 
 /-
@@ -103,7 +103,7 @@ instance (x y : Float₀) : Decidable (x ≤ y) :=
 Addition of two `Float₀`s.
 -/
 instance : Add Float₀ where
-  add := fun ⟨f₁,_⟩ ⟨f₂,_⟩ ↦ ⟨f₁ + f₂, sorry⟩
+  add := fun ⟨f₁,p₁⟩ ⟨f₂,p₂⟩ ↦ ⟨f₁ + f₂, sorry⟩
 
 /-
 ### FloatMN

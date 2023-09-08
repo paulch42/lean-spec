@@ -107,8 +107,8 @@ Note the correspondence between the clauses in the inductive definition of `Orde
 and the recursive definition of `Ordered₂`.
 
 As with programming and proof, there is no single way, or best way, to specify a
-program. The activity of specification is an iterative process, as the specification
-is refined, and clearer ways of expressing concepts are discovered.
+program. The activity of specification is an iterative process; as the specification
+is refined clearer ways of expressing concepts are discovered.
 
 ## Exercises
 

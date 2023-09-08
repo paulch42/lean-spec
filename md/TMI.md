@@ -142,7 +142,7 @@ constraint is captured in a distinct subscripted `inv` field.
 
 Traditionally, structures (records) are used to model data consisting of multiple disparate elements.
 Dependent types introduce the capability to directly encode constraints that relate the
-elements of a type. The consequence is that instances of the type that structurally look
+elements of a type. The consequence is that instances of the item that structurally look
 like elements of the type are excluded because they fail to satisfy the constraints.
 
 In the case of `FlightDeparture`, the empty set is of type `Set RunwayDesig`, but field
