@@ -4,19 +4,15 @@
 the correspondence between propositions and types (and between proofs and programs).
 As such it is able to serve as a basis for the formalisation of mathematics (i.e., the
 statement and proof of theorems). Indeed, a considerable body of mathematics has
-been formalised in [version 3 of Lean](https://leanprover-community.github.io), and is packaged as
-[mathlib](https://github.com/leanprover-community/mathlib). A good introduction to the
+been formalised in Lean, and is packaged as
+[mathlib4](https://github.com/leanprover-community/mathlib4). A good introduction to the
 use of Lean for the formalisation of mathematics is
 [Theorem Proving in Lean](https://leanprover.github.io/theorem_proving_in_lean4/).
 
-The programming language component of Lean 3 primarily serves as the meta-language for
-performing proofs. At the time of writing Lean 4 is in an advanced stage of development.
-In addition to maintaining the capabilities of Lean 3 concerning formalisation of
-mathematics, significant effort has gone into developing Lean 4 (hereafter simply
-referred to as Lean) as a comprehensive functional programming language, in the style
-of [Haskell](https://www.haskell.org).
-
-While Haskell has a more traditional type system, the dependently typed system of Lean
+The programming language component of Lean (version 4) is a comprehensive functional programming language, in the style
+of [Haskell](https://www.haskell.org). A good introduction to the
+use of Lean as a programming langiuage is
+[Functional Programming in Lean](https://leanprover.github.io/functional_programming_in_lean/). While Haskell has a more traditional type system, the dependently typed system of Lean
 and its underlying logic bring a number of benefits from a software perspective:
 * Lean is a fully featured specification language. It can be used to specify the
 functionality of software that can be implemented in Lean or other languages.
