@@ -11,7 +11,7 @@ use of Lean for the formalisation of mathematics is
 
 The programming language component of Lean (version 4) is a comprehensive functional programming language, in the style
 of [Haskell](https://www.haskell.org). A good introduction to the
-use of Lean as a programming langiuage is
+use of Lean as a programming language is
 [Functional Programming in Lean](https://leanprover.github.io/functional_programming_in_lean/). While Haskell has a more traditional type system, the dependently typed system of Lean
 and its underlying logic bring a number of benefits from a software perspective:
 * Lean is a fully featured specification language. It can be used to specify the
