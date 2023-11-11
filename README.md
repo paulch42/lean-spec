@@ -53,9 +53,10 @@ Some discussion on the use of Lean for specifications is [here](Discussion.md) (
 
 ## Creating The Markdown Files
 
-The files are Lean scripts from which markdown is generated. Python and the [lean2md](https://github.com/arthurpaulino/lean2md) package are required.
+The files are Lean scripts from which markdown is generated. Python and the [lean2md](https://github.com/arthurpaulino/lean2md) package are required. To build and serve the markdown files locally, Rust and [mdbook](https://github.com/rust-lang/mdBook) are required.
 
 Build the markdown files with `lake run md`.
+Build the book and serve with `mdbook serve`.
 
 ## Acknowledgement
 

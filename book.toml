@@ -1,0 +1,6 @@
+[book]
+title = "Specification in Lean"
+authors = ["paulch42"]
+language = "en"
+multilingual = false
+src = "."
