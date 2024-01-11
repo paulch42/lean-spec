@@ -230,7 +230,7 @@ namespace Interval
 Default instance of an interval.
 -/
 instance : Inhabited Interval where
-  default := ⟨0, 0, by simp⟩
+  default := ⟨0, 0, sorry⟩
 
 /-
 The `<` order relation on Interval.

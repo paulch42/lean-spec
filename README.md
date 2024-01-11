@@ -53,9 +53,9 @@ Some discussion on the use of Lean for specifications is [here](Discussion.md) (
 
 ## Creating The Markdown Files
 
-The files are Lean scripts from which markdown is generated. Python and the [lean2md](https://github.com/arthurpaulino/lean2md) package are required.
+The files are Lean scripts from which markdown is generated using the [mdgen](https://github.com/Seasawher/mdgen) tool.
 
-Build the markdown files with `lake run md`.
+Build the markdown files with `lake exe mdgen LeanSpec md`.
 
 ## Acknowledgement
 

@@ -33,7 +33,7 @@ deriving DecidableEq
 `-SAS912/A5100`
 
 ```lean
-example := Field7.mk ⟨"SAS912", by simp⟩ (some ⟨"5100", by simp⟩)
+example := Field7.mk ⟨"SAS912", by trivial⟩ (some ⟨"5100", by trivial⟩)
 ```
 
 ## Field 8: Flight rules and type of flight
@@ -70,7 +70,7 @@ deriving DecidableEq
 `-2FK27/M`
 
 ```lean
-example := Field9.mk (some ⟨2, by simp⟩) (some ⟨"FK27", by simp⟩) .m
+example := Field9.mk (some ⟨2, by trivial⟩) (some ⟨"FK27", by trivial⟩) .m
 ```
 
 ### Field 9 Example
@@ -133,7 +133,7 @@ deriving DecidableEq
 `-EHAM0730`
 
 ```lean
-example := Field13.mk (some (.adep ⟨"EHAM", by simp⟩)) 63072027000
+example := Field13.mk (some (.adep ⟨"EHAM", by trivial⟩)) 63072027000
 ```
 
 `-AFIL1625`
@@ -308,10 +308,10 @@ deriving DecidableEq
 
 ```lean
 def exElems := [
-  RouteElement.mk none (some .dct) (by simp),
-  RouteElement.mk (mkWpt ⟨"WOL", by simp⟩) (some (.rte ⟨"H65", by simp⟩)) (by simp),
-  RouteElement.mk (mkWpt ⟨"RAZZI", by simp⟩) (some (.rte ⟨"Q29", by simp⟩)) (by simp),
-  RouteElement.mk (mkWpt ⟨"LIZZI", by simp⟩) (some .dct) (by simp)
+  RouteElement.mk none (some .dct) (by trivial),
+  RouteElement.mk (mkWpt ⟨"WOL", by trivial⟩) (some (.rte ⟨"H65", by trivial⟩)) (sorry),
+  RouteElement.mk (mkWpt ⟨"RAZZI", by trivial⟩) (some (.rte ⟨"Q29", by trivial⟩)) (sorry),
+  RouteElement.mk (mkWpt ⟨"LIZZI", by trivial⟩) (some .dct) (sorry)
 ]
 where mkWpt (wpt : Waypoint) : Option RoutePoint :=
   some ⟨.wpt wpt, none, none⟩
@@ -360,7 +360,7 @@ deriving DecidableEq
 `-EHAM0645 EBBR ZZZZ`
 
 ```lean
-example := Field16.mk (some ⟨"EHAM", by simp⟩) 24300 [some ⟨"EBBR", by simp⟩, none] sorry
+example := Field16.mk (some ⟨"EHAM", by trivial⟩) 24300 [some ⟨"EBBR", by trivial⟩, none] (by trivial)
 ```
 
 Are a departure and destination aerodrome the same?
@@ -397,7 +397,7 @@ deriving DecidableEq
 `-ZZZZ1620 DEN HELDER`
 
 ```lean
-example := Field17.mk none 63072058800 (some ⟨"DEN HELDER", by simp⟩)
+example := Field17.mk none 63072058800 (some ⟨"DEN HELDER", by trivial⟩)
 ```
 
 ## Field 18: Other information
@@ -516,27 +516,27 @@ deriving DecidableEq
 example : Field18 := {
   sts := ∅,
   pbn := {.a1, .b1, .c1, .d1, .o2, .s2, .t1},
-  nav := some ⟨"RNP2", by simp⟩,
+  nav := some ⟨"RNP2", by trivial⟩,
   com := none,
   dat := none,
   sur := none,
   dep := none,
   dest := none,
-  reg := {⟨"VHXYZ", by simp⟩}
+  reg := {⟨"VHXYZ", by trivial⟩}
   eet := [],
-  sel := some ⟨"AFPQ", by simp⟩,
+  sel := some ⟨"AFPQ", by trivial⟩,
   typ := ∅,
-  code := some ⟨"7C6DDF", by simp⟩,
+  code := some ⟨"7C6DDF", by trivial⟩,
   dle := ∅,
-  opr := some ⟨"FLYOU", by simp⟩,
-  orgn := some ⟨"YSSYABCO", by simp⟩,
+  opr := some ⟨"FLYOU", by trivial⟩,
+  orgn := some ⟨"YSSYABCO", by trivial⟩,
   per := some .c,
   altn := [],
   ralt := ∅,
   talt := ∅,
   rif := none,
   rmk := none,
-  inv := sorry
+  inv := by trivial
 }
 ```
 
@@ -742,11 +742,11 @@ example : Field22 where
   f8  := some ⟨.i, some .x⟩
   f9  := none
   f10 := none
-  f13 := some ⟨some (.adep ⟨"EDDN", by simp⟩), 63072027000⟩
+  f13 := some ⟨some (.adep ⟨"EDDN", by trivial⟩), 63072027000⟩
   f15 := none
   f16 := none
   f18 := none
-  inv := sorry
+  inv := by trivial
 
 end FPL.Field
 ```

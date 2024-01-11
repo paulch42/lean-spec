@@ -139,6 +139,7 @@ conduct, so an acceptable take off window is specified. The flight must not be
 allocated a time outside the window.
 - To present an alternative approach to invariants, in this specification each
 constraint is captured in a distinct subscripted `inv` field.
+- `Set A` is the type of finite sets of elements drawn from `A` (defined in [Util](lib/Util.md)).
 
 Traditionally, structures (records) are used to model data consisting of multiple disparate elements.
 Dependent types introduce the capability to directly encode constraints that relate the
@@ -185,7 +186,7 @@ structure TMIConfig where
   -- The rates of the runways that participate in the TMI.
   rates   : RunwayRates
   -- The take off window of a proposed flight must fall within the TMI period.
-  inv₁    : ∀ f ∈ flights, f.window ∩ period ≠ ∅ 
+  inv₁    : ∀ f ∈ flights, f.window ∩ period ≠ ∅
   -- A flight must be able to take off from one of the participating runways.
   inv₂    : ∀ f ∈ flights, f.canUse ∩ rates.domain ≠ ∅
 ```

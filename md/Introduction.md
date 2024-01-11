@@ -30,7 +30,7 @@ the vagueness and ambiguity that entails. Experience shows that, despite signifi
 effort being expended on using precise language, specifications and designs are open to
 interpretation. A designer may misinterpret the intent of a requirement, a software
 developer the intent of a requirement or design clause, a tester the intent of a
-requirement, etc. The potential for misinterpretation is increased because because the
+requirement, etc. The potential for misinterpretation is increased because the
 context is not always clear in informal presentations. A balance has to be
 maintained with requirements to, on the one hand, be concise and to the point, and on
 the other hand, provide enough contextual information to ensure correct interpretation.
