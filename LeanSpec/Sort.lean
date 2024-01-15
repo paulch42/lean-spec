@@ -89,7 +89,7 @@ def Sort₂ [BEq α] [LE α] (as : List α) :=
 > In fact `LE` is insufficient. It only guarantees there is a binary predicate on the type, not
 that it is the predicate we normally think of as _less than or equal_. The predicate must be
 a partial order, but we won't go into the details here (which requires partial orders from
-[mathlib4](https://github.com/leanprover-community/mathlib4).
+[mathlib4](https://github.com/leanprover-community/mathlib4)).
 
 The predicate `Ordered₂` is typical of a traditional approach, perhaps with the
 exception the result is a `Prop` rather than a `Bool`. Dependently typed
