@@ -31,7 +31,7 @@ def Permutation₁ (as bs : List α) :=
   ∀ a : α, a ∈ as ↔ a ∈ bs
 ```
 
-Two lists are permuations of each other if they contain the same items.
+Two lists are permutations of each other if they contain the same items.
 
 With these definitions we can now specify the sorting function:
 
