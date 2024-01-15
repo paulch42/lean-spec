@@ -42,14 +42,6 @@ instance (m n : Nat) (x y : Str m n) : Decidable (x < y) :=
   inferInstanceAs (Decidable (x.val < y.val))
 ```
 
-### Nat₁
-
-Non-zero natural numbers.
-
-```lean
-def Nat₁ := { n : Nat // n ≠ 0 }
-```
-
 ### NatMN
 
 Range restricted natural numbers.
@@ -66,67 +58,19 @@ instance : DecidableEq (NatMN m n) :=
   sorry
 ```
 
-### Float
+### IntMN
 
-Equality of `Float` is decidable.
+Range restricted integers.
+Lower limit is inclusive, upper limit is exclusive.
 
 ```lean
-instance : DecidableEq Float :=
-  sorry
+def IntMN (m n : Int) := { x : Int // m ≤ x ∧ x < n }
 ```
 
-### Float₀
-
-Non-negative floats.
+Equality of `IntMN` is decidable.
 
 ```lean
-def Float₀ := { x : Float // 0 ≤ x }
-deriving DecidableEq
-```
-
-The `<` order relation on `Float₀`.
-
-```lean
-instance : LT Float₀ where
-  lt f₀ f₁ := f₀.val < f₁.val
-```
-
-The `<` relation is decidable.
-
-```lean
-instance (x y : Float₀) : Decidable (x < y) :=
-  inferInstanceAs (Decidable (x.val < y.val))
-```
-
-The `≤` order relation on `Float₀`.
-
-```lean
-instance : LE Float₀ where
-  le f₀ f₁ := f₀.val ≤ f₁.val
-```
-
-The `≤` relation is decidable.
-
-```lean
-instance (x y : Float₀) : Decidable (x ≤ y) :=
-  inferInstanceAs (Decidable (x.val ≤ y.val))
-```
-
-Addition of two `Float₀`s.
-
-```lean
-instance : Add Float₀ where
-  add := fun ⟨f₁,p₁⟩ ⟨f₂,p₂⟩ ↦ ⟨f₁ + f₂, sorry⟩
-```
-
-### FloatMN
-
-Range restricted floats.
-
-```lean
-def FloatMN (m n : Float) := { x : Float // m ≤ x ∧ x < n }
-
-instance : DecidableEq (FloatMN m n) :=
+instance : DecidableEq (IntMN m n) :=
   sorry
 ```
 
@@ -134,14 +78,6 @@ instance : DecidableEq (FloatMN m n) :=
 
 ```lean
 namespace List
-```
-
-The number of occurrences of an element in a list.
-
-```lean
-def numOccurs [BEq α] (a : α) : List α → Nat
-  | []    => 0
-  | b::as => if a == b then numOccurs a as + 1 else numOccurs a as
 ```
 
 The sum of the elements of a list. The base type must be an instance of `Add`, and the identity is provided as an argument.
@@ -179,13 +115,6 @@ def minimumD [Min α] (as : List α) (a : α) : α :=
   match as.minimum? with
   | none   => a
   | some a => a
-```
-
-Set equality relation on lists: same elements regardless of order or multiplicity.
-
-```lean
-def seteq (as bs : List α) :=
-  ∀ a : α, a ∈ as ↔ a ∈ bs
 ```
 
 Are the elements of a list in ascending order?
@@ -239,10 +168,10 @@ instance [DecidableEq α] : Membership α (Set α) where
   mem a as := a ∈ as.val
 
 instance [DecidableEq α] : HasSubset (Set α) where
-  Subset s₁ s₂ := ∀ a ∈ s₁, a ∈ s₂   
+  Subset s₁ s₂ := ∀ a ∈ s₁, a ∈ s₂
 
 instance [DecidableEq α] : HasSSubset (Set α) where
-  SSubset s₁ s₂ := s₁ ⊆ s₂ ∧ ∃ a ∈ s₁, a ∉ s₂ 
+  SSubset s₁ s₂ := s₁ ⊆ s₂ ∧ ∃ a ∈ s₁, a ∉ s₂
 
 instance [DecidableEq α] : Union (Set α) where
   union s₁ s₂ := ⟨(s₁.val ++ s₂.val).eraseDup, sorry⟩
@@ -254,7 +183,7 @@ instance [DecidableEq α] : SDiff (Set α) where
   sdiff s₁ s₂ := sorry
 
 instance [DecidableEq α] : Insert (α : Type) (Set α) where
-  insert a as := ⟨if a ∈ as.val then as.val else a :: as.val, sorry⟩  
+  insert a as := ⟨if a ∈ as.val then as.val else a :: as.val, sorry⟩
 
 instance [DecidableEq α] : Singleton (α: Type) (Set α) where
   singleton a := ⟨[a], sorry⟩
@@ -491,7 +420,7 @@ The range of a finite map.
 
 ```lean
 def range [DecidableEq α] [DecidableEq β] (m : α ⟹ β) : Set β :=
-  sorry 
+  sorry
 
 end Map
 ```

@@ -7,8 +7,11 @@ import LeanSpec.lib.Util
 ```
 
 Informally, a sort function takes a list as argument, and returns a list that
-is an ordered permutation of its argument. A predicate that specifies whether
-a list is ordered might be:
+is an ordered permutation of its argument.
+
+Let's start by looking at a naive definition.
+
+A predicate that specifies whether a list is ordered might be:
 
 ```lean
 def Ordered₁ [LT α] : List α → Prop
@@ -21,13 +24,14 @@ if the first item precedes the second item, and the tail is ordered. The type of
 the list must admit an order relation, stated in the definition by `[LT α]`: the type `α`
 is an instance of the type class `LT`.
 
-First let's try a naive definition. Two lists are permutations of each other if they
-contain the same items, irrespective of order:
+A predicate that specifies whether one list is a permutation of another might be:
 
 ```lean
 def Permutation₁ (as bs : List α) :=
   ∀ a : α, a ∈ as ↔ a ∈ bs
 ```
+
+Two lists are permuations of each other if they contain the same items.
 
 With these definitions we can now specify the sorting function:
 
@@ -39,7 +43,7 @@ def Sort₁ [LT α] (as : List α) :=
 `Sort₁` takes as argument a list of items with an order relation,
 and returns a list that is an ordered permutation of its input.
 
-There is, unfortunately, a problem with the specification of `Sort₁`: it is not
+There are, unfortunately, problems with the specification of `Sort₁`: it is not
 possible to derive a program that meets the specification. Do you see why?
 
 Consider this clause from the definition of `Ordered₁`:
@@ -49,15 +53,19 @@ What happens when the input list is `[2, 2]`? The definition of `Ordered₁` sta
 consecutive items in the list must be related by `<`, but `2 ≮ 2`. The specification does
 not accommodate lists with duplicate entries.
 
+Furthermore, consider the lists `[1,2]` and `[2,1,2]`. They are not permutations of each
+other, yet they satisfy predicate `Permutation₁`.
+
 Just as there is no guarantee a postulated mathematical theorem is provable,
 there is no guarantee a program specification is implementable (they are after
-all different expressions of the same concept).
+all different expressions of the same concept). Even if the specification is
+implementable, there is no guarantee it captures the intent.
 
-Let's try again. First note the function `numOccurs` (defined in [Util](lib/Util.md)) that counts
-the number of occurrences of an item in a list:
+Let's try again. First note the function `count` (defined in [std4](https://github.com/leanprover/std4))
+that counts the number of occurrences of an item in a list:
 
 ```lean
-#check List.numOccurs
+#check List.count
 ```
 
 The `Ordered` predicate is largely as before except the comparison operator
@@ -75,7 +83,7 @@ occurrences in the other list.
 
 ```lean
 def Permutation₂ [BEq α] (as bs : List α) :=
-  ∀ a : α, as.numOccurs a = bs.numOccurs a
+  ∀ a : α, as.count a = bs.count a
 ```
 
 `Sort₂` employs the new `Ordered₂` and `Permutation₂` predicates, but otherwise is
@@ -86,9 +94,10 @@ def Sort₂ [BEq α] [LE α] (as : List α) :=
   { sas : List α // Ordered₂ sas ∧ Permutation₂ as sas }
 ```
 
-In fact `LE` is insufficient. It only guarantees there is a binary predicate on the type, not
+> In fact `LE` is insufficient. It only guarantees there is a binary predicate on the type, not
 that it is the predicate we normally think of as _less than or equal_. The predicate must be
-a partial order, but we won't go into the details here.
+a partial order, but we won't go into the details here (which requires partial orders from
+[mathlib4](https://github.com/leanprover-community/mathlib4).
 
 The predicate `Ordered₂` is typical of a traditional approach, perhaps with the
 exception the result is a `Prop` rather than a `Bool`. Dependently typed

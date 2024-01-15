@@ -254,7 +254,7 @@ Default instance of an interval.
 
 ```lean
 instance : Inhabited Interval where
-  default := ⟨0, 0, sorry⟩
+  default := ⟨0, 0, by trivial⟩
 ```
 
 The `<` order relation on Interval.

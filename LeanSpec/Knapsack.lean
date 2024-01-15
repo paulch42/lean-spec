@@ -24,7 +24,7 @@ deriving BEq
 Each item simply has a value and a cost. Note there may be multiple items in the
 knapsack with the same value and cost.
 
-A `structure` is Lean's equivalent of a `record` or a `struct` in other languages; it 
+A `structure` is Lean's equivalent of a `record` or a `struct` in other languages; it
 packages separate elements into a single unit. However, as we shall see later, Lean's
 structures are rather more powerful.
 
@@ -54,7 +54,7 @@ taking account of duplicates. For example, if `as` has two copies of an item, `b
 contain at least two copies of the same item.
 -/
 def SubList [BEq α] (as bs : List α) :=
-  ∀ a : α, as.numOccurs a ≤ bs.numOccurs a
+  ∀ a : α, as.count a ≤ bs.count a
 
 /-
 ## Candidate
@@ -74,9 +74,9 @@ The optimal solution is a (not necessarily unique) candidate solution such that
 no better candidate exists.
 -/
 def Knapsack₁ (capacity : Nat) (source : List Item) :=
-  { opt : List Item
-    // Candidate₁ capacity source opt ∧
-       ∀ is : List Item, Candidate₁ capacity source is → value is ≤ value opt }
+  { optimal : List Item
+    // Candidate₁ capacity source optimal ∧
+       ∀ is : List Item, Candidate₁ capacity source is → value is ≤ value optimal }
 
 /-
 This is a nice example of where formal specification works very well.
@@ -101,11 +101,11 @@ A element of type `Candidate₂ capacity source` is any list whose elements are 
 With this definition of candidate, the knapsack problem can be specified as:
 -/
 def Knapsack₂ (capacity : Nat) (source : List Item) :=
-  { opt : Candidate₂ capacity source
-    // ∀ cand : Candidate₂ capacity source, value cand.val ≤ value opt.val }
+  { optimal : Candidate₂ capacity source
+    // ∀ cand : Candidate₂ capacity source, value cand.val ≤ value optimal.val }
 
 /-
-In this approach the subtype property can assume `opt` is a candidate solution.
-In the first definition the subtype property could only assume `opt` is an
+In this approach the subtype property can assume `optimal` is a candidate solution.
+In the first definition the subtype property could only assume `optimal` is an
 arbitrary list of items.
 -/

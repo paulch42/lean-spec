@@ -35,11 +35,11 @@ Since the list is guaranteed non-empty, functions that extract the first and las
 total.
 -/
 def List₁.first : List₁ α → α
-  | ⟨a::_, _⟩ => a 
+  | ⟨a::_, _⟩ => a
 
 def List₁.last : List₁ α → α
   | ⟨[a], _⟩      => a
-  | ⟨_::a::as, _⟩ => last ⟨a::as, by simp⟩ 
+  | ⟨_::a::as, _⟩ => last ⟨a::as, by simp⟩
 
 /-
 ## Graphs
@@ -157,7 +157,7 @@ def findPath (g : Graph) (s e : Node) :
 If we always choose the `none` option the specification is satisfied.
 
 Going back to the first attempt, `FindPath₁`, let's give it a more meaningful name since it doesn't
-guarantee a solution exists: 
+guarantee a solution exists:
 -/
 def IsPath (g : Graph) (s e : Node) := { p : Path g // p.start = s ∧ p.end = e }
 
@@ -165,7 +165,7 @@ def IsPath (g : Graph) (s e : Node) := { p : Path g // p.start = s ∧ p.end = e
 In the case a path exists we want to create an element of `IsPath g s e` (the type of paths from
 `s` to `e` over `g`). If no path exists, we need to provide evidence for said fact. At the
 propositional level this would be `¬ P`, which is definitionally equal to `P → False`, and when
-working at the type level this becomes `T → Empty`. Consequently, we are led to the definition: 
+working at the type level this becomes `T → Empty`. Consequently, we are led to the definition:
 -/
 def FindPath₃ (g : Graph) (s e : Node) :=
   IsPath g s e ⊕ (IsPath g s e → Empty)
@@ -174,7 +174,8 @@ def FindPath₃ (g : Graph) (s e : Node) :=
 `⊕` is the disjoint/discriminated union type, also called `Sum`.
 
 `FindPath₃` returns a disjoint sum. If a path exists it is returned as the left injection.
-If no path exists, evidence is returned as the right injection.
+If no path exists, evidence is returned as the right injection (which in essence corresponds
+to an error message).
 
 ## Shortest Path
 

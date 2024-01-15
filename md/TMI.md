@@ -85,7 +85,7 @@ namespace TMI
 
 First some basic types that identify airports, flights and runways. There are rules
 around how these identifiers are formed, but for this specification it is sufficient
-that different identifiers can be distinguished.
+that different identifiers can be distinguished, so we use the core Lean type `String`.
 
 ### Designator of an Airport
 
@@ -149,7 +149,8 @@ like elements of the type are excluded because they fail to satisfy the constrai
 In the case of `FlightDeparture`, the empty set is of type `Set RunwayDesig`, but field
 `canUse` will never be the empty set as `inv₁` would not be satisfied. The consequence of
 the invariant is a flight cannot be considered if it does not nominate at least one runway
-from which it can take off.
+from which it can take off. Similarly, by `inv₂` a flight will not be considered unless its
+preferred time falls within its allowed departure window.
 
 ### Runway Rate
 
@@ -190,6 +191,10 @@ structure TMIConfig where
   -- A flight must be able to take off from one of the participating runways.
   inv₂    : ∀ f ∈ flights, f.canUse ∩ rates.domain ≠ ∅
 ```
+
+The invariant fields ensure:
+- the takeoff window of a flight falls within the period of the TMI;
+- a flight is able to takeoff from at least one of the runways available for use.
 
 ### Slot
 
@@ -240,7 +245,7 @@ constraint is concerned with the relationship to `TMIConfig`.
 Field `gdp` of `FlightAllocation` is the only _data_ field; all others are invariants. The effect
 of this definition is that for a given `cfg : TMIConfig`, the elements of type
 `FlightAllocation cfg` are all, and only, those allocations of flights to slots that satisfy
-the problem constraints.
+the problem constraints (`inv₁` through `inv₆`).
 
 ### Cost
 
@@ -258,7 +263,8 @@ those that are omitted:
 
 The deviation assigned to a flight that was allocated a slot in the TMI is
 the duration between its preferred time and its allocated time. Duration is
-expressed in seconds, so the greater the duration, the greater the cost.
+expressed in seconds, so the greater the duration (i.e., deviation from preferred time), the greater
+the cost.
 
 ```lean
 def allocatedDeviation (flight : FlightDeparture) (slot : Slot) : Duration :=
@@ -340,7 +346,7 @@ constraints.
 ### Non-Dependent Approach
 
 `FlightAllocation` is a dependent type that only admits an element if it satisfies the invariants.
-The initial approach was more traditional with `FlightAllocation` defined as a simple map:
+Initially a more traditional approach was taken, with `FlightAllocation` defined as a simple map:
 
 ```lean
 abbrev FlightAllocation₂ := FlightId ⟹ Slot
@@ -371,7 +377,7 @@ def Satisfies (cfg : TMIConfig) (alloc : FlightAllocation₂) :=
 Note that, other than some minor syntactic differences, the constraints expressed by
 `Satisfies` are exactly the invariants of type `FlightAllocation`.
 
-The dependent approach allows the constraints to be located with the data they refer to,
+The dependent approach allows the constraints to be located with the data to which they refer,
 rather than elsewhere in the specification, which aids comprehension. Further, the dependent
 approach allows the types to be more tightly defined, and as a result the specification of
 functions over those types tends to be simpler.

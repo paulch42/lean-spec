@@ -39,13 +39,6 @@ instance (m n : Nat) (x y : Str m n) : Decidable (x < y) :=
   inferInstanceAs (Decidable (x.val < y.val))
 
 /-
-### Nat₁
-
-Non-zero natural numbers.
--/
-def Nat₁ := { n : Nat // n ≠ 0 }
-
-/-
 ### NatMN
 
 Range restricted natural numbers.
@@ -60,72 +53,23 @@ instance : DecidableEq (NatMN m n) :=
   sorry
 
 /-
-### Float
+### IntMN
 
-Equality of `Float` is decidable.
+Range restricted integers.
+Lower limit is inclusive, upper limit is exclusive.
 -/
-instance : DecidableEq Float :=
-  sorry
+def IntMN (m n : Int) := { x : Int // m ≤ x ∧ x < n }
 
 /-
-### Float₀
-
-Non-negative floats.
+Equality of `IntMN` is decidable.
 -/
-def Float₀ := { x : Float // 0 ≤ x }
-deriving DecidableEq
-
-/-
-The `<` order relation on `Float₀`.
--/
-instance : LT Float₀ where
-  lt f₀ f₁ := f₀.val < f₁.val
-
-/-
-The `<` relation is decidable.
--/
-instance (x y : Float₀) : Decidable (x < y) :=
-  inferInstanceAs (Decidable (x.val < y.val))
-
-/-
-The `≤` order relation on `Float₀`.
--/
-instance : LE Float₀ where
-  le f₀ f₁ := f₀.val ≤ f₁.val
-
-/-
-The `≤` relation is decidable.
--/
-instance (x y : Float₀) : Decidable (x ≤ y) :=
-  inferInstanceAs (Decidable (x.val ≤ y.val))
-
-/-
-Addition of two `Float₀`s.
--/
-instance : Add Float₀ where
-  add := fun ⟨f₁,p₁⟩ ⟨f₂,p₂⟩ ↦ ⟨f₁ + f₂, sorry⟩
-
-/-
-### FloatMN
-
-Range restricted floats.
--/
-def FloatMN (m n : Float) := { x : Float // m ≤ x ∧ x < n }
-
-instance : DecidableEq (FloatMN m n) :=
+instance : DecidableEq (IntMN m n) :=
   sorry
 
 /-
 ## List
 -/
-namespace List 
-
-/-
-The number of occurrences of an element in a list.
--/
-def numOccurs [BEq α] (a : α) : List α → Nat
-  | []    => 0
-  | b::as => if a == b then numOccurs a as + 1 else numOccurs a as
+namespace List
 
 /-
 The sum of the elements of a list. The base type must be an instance of `Add`, and the identity is provided as an argument.
@@ -158,12 +102,6 @@ def minimumD [Min α] (as : List α) (a : α) : α :=
   match as.minimum? with
   | none   => a
   | some a => a
-
-/-
-Set equality relation on lists: same elements regardless of order or multiplicity.
--/
-def seteq (as bs : List α) :=
-  ∀ a : α, a ∈ as ↔ a ∈ bs
 
 /-
 Are the elements of a list in ascending order?
@@ -212,10 +150,10 @@ instance [DecidableEq α] : Membership α (Set α) where
   mem a as := a ∈ as.val
 
 instance [DecidableEq α] : HasSubset (Set α) where
-  Subset s₁ s₂ := ∀ a ∈ s₁, a ∈ s₂   
+  Subset s₁ s₂ := ∀ a ∈ s₁, a ∈ s₂
 
 instance [DecidableEq α] : HasSSubset (Set α) where
-  SSubset s₁ s₂ := s₁ ⊆ s₂ ∧ ∃ a ∈ s₁, a ∉ s₂ 
+  SSubset s₁ s₂ := s₁ ⊆ s₂ ∧ ∃ a ∈ s₁, a ∉ s₂
 
 instance [DecidableEq α] : Union (Set α) where
   union s₁ s₂ := ⟨(s₁.val ++ s₂.val).eraseDup, sorry⟩
@@ -227,7 +165,7 @@ instance [DecidableEq α] : SDiff (Set α) where
   sdiff s₁ s₂ := sorry
 
 instance [DecidableEq α] : Insert (α : Type) (Set α) where
-  insert a as := ⟨if a ∈ as.val then as.val else a :: as.val, sorry⟩  
+  insert a as := ⟨if a ∈ as.val then as.val else a :: as.val, sorry⟩
 
 instance [DecidableEq α] : Singleton (α: Type) (Set α) where
   singleton a := ⟨[a], sorry⟩
@@ -272,7 +210,7 @@ def foldr [DecidableEq α] (f : α → β → β) (init : β) (as : Set α) : β
 Seelct the unique element from a singleton set.
 -/
 def select [DecidableEq α] : (as : Set α) → (as.card = 1) → α :=
-  sorry 
+  sorry
 
 /-
 The minimum element of a set, returning default value for empty set.
@@ -373,7 +311,7 @@ instance [DecidableEq α] [DecidableEq β] : Membership (Entry α β) (α ⟹ β
 Does a map contain a key?
 -/
 def contains [DecidableEq α] [DecidableEq β] (a : α) (m : α ⟹ β) : Prop :=
-  ∃ x ∈ m, x.key = a   
+  ∃ x ∈ m, x.key = a
 
 /-
 Remove an entry with a key from a map.
@@ -391,7 +329,7 @@ def insert [DecidableEq α] [DecidableEq β] (m : α ⟹ β) (a : α) (b : β) :
 Find the entry (key and value) associated with a key, if in the map.
 -/
 def findEntry?  [DecidableEq α] [DecidableEq β] (a : α) (m : α ⟹ β) : Option (Entry α β) :=
-  sorry 
+  sorry
 
 /-
 Find the entry (key and value) associated with a key, knowing the key is in the map.
@@ -403,7 +341,7 @@ def findEntry [DecidableEq α] [DecidableEq β] (a : α) (m : α ⟹ β) (h : m.
 Find the value associated with a key, if the key is in the map.
 -/
 def find? [DecidableEq α] [DecidableEq β] (a : α) (m : α ⟹ β) : Option β :=
-  sorry 
+  sorry
 
 /-
 Find the value associated with a key, knowing the key is in the map.
@@ -433,7 +371,7 @@ def domain {α: Type} [DecidableEq α] [DecidableEq β] (m : α ⟹ β) : Set α
 The range of a finite map.
 -/
 def range [DecidableEq α] [DecidableEq β] (m : α ⟹ β) : Set β :=
-  sorry 
+  sorry
 
 end Map
 

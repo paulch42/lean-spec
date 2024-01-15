@@ -20,12 +20,12 @@ what the software must achieve. Any questions relating to functionality can be
 addressed by referring to the specification. Furthermore, while routine proof is
 beyond current capability, routine formal specification is a viable goal.
 
-Consider one typical scenario for software development in industry. A collection of
+Consider a typical scenario for software development in industry. A collection of
 use cases is created capturing the functionality and actor interactions. From this,
 the requirements specification is written, consisting of a collection of
-individual requirements, presented as __shall__ clauses. For those requirements, a
-design is created employing the Unified Modelling Language (UML), which consists of
-diagrams (class, state, sequence, etc) supported by natural language descriptive text.
+individual requirements, presented as __shall__ clauses in natural language. For those
+requirements, a design is created employing the Unified Modelling Language (UML), which
+consists of diagrams (class, state, sequence, etc) supported by descriptive text.
 However, a large part of the output of this process is natural language text, with all
 the vagueness and ambiguity that entails. Experience shows that, despite significant
 effort being expended on using precise language, specifications and designs are open to
@@ -48,9 +48,9 @@ non-dependent approaches.
 
 # Lean As A Specification Language
 
-This tutorial is not intended to be a comprehensive description of the Lean language
-and its logic. Here we provide an overview of the more salient parts to allow understanding
-of later sections. Full details can be found in the [Lean 4 Manual](https://leanprover.github.io/lean4/doc/).
+This tutorial is not intended to be an introduction to the Lean language and its logic.
+Here we provide an overview of the more salient parts to allow understanding of later sections.
+Full details can be found in the [Lean 4 Manual](https://leanprover.github.io/lean4/doc/).
 The most relevant content is:
 * [Theorem Proving in Lean](https://leanprover.github.io/theorem_proving_in_lean4/title_page.html)
 for the logic and proof;
@@ -183,11 +183,11 @@ def double₁ (n : Nat) : Nat :=
 /-
 The non-computational content is not problematic. It does not intrude when constructing
 specifications, and it is essential for deriving/verifying programs. Removal of the
-non-computational content can be automated at the compilation stage. In fact, the evaluation
+non-computational content can be automated at the compilation stage. In fact, when presented with
 -/
 #eval double 4
 /-
-outputs the value `8`, not the complete subtype structure.
+Lean outputs the value `8` rather than the subtype structure `{val := 8, property := rfl}`.
 
 Notes:
 

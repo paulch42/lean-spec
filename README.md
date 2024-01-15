@@ -28,7 +28,7 @@ used to its full capacity, _type correctness = program correctness_.
 
 This tutorial is an introduction to the use of Lean for the specification of software
 functionality. The aim is to express what a function is intended to achieve, not how
-it is achieved. How one might derive a program that meets a specification using the Lean
+it is achieved. How one might verify or derive a program that meets a specification using the Lean
 logic is not addressed here. The contents of this tutorial are:
 
 |   |   |

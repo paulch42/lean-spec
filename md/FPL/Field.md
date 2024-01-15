@@ -181,7 +181,7 @@ deriving DecidableEq
 
 ```lean
 example : SpeedLevelChange where
-  speed := ⟨⟨⟨540, sorry⟩, .kt, .ias, by simp⟩, sorry⟩
+  speed := ⟨⟨540, .kt, .ias, by simp⟩, sorry⟩
   level := ⟨5500, .feet, .altitude⟩
   upper := some .plus
 ```
@@ -317,9 +317,9 @@ where mkWpt (wpt : Waypoint) : Option RoutePoint :=
   some ⟨.wpt wpt, none, none⟩
 
 example := {
-  f15a := ⟨⟨⟨0.79, sorry⟩, .mach, .tas, by simp⟩, by simp⟩,  -- M079
-  f15b := some ⟨380, .feet, .flightLevel⟩,                   -- F380
-  f15c := ⟨none, exElems, none, sorry⟩ : Field15             -- DCT WOL H65 RAZZI Q29 LIZZI DCT
+  f15a := ⟨⟨790, .mach, .tas, by simp⟩, by simp⟩,  -- M079
+  f15b := some ⟨380, .feet, .flightLevel⟩,         -- F380
+  f15c := ⟨none, exElems, none, sorry⟩ : Field15   -- DCT WOL H65 RAZZI Q29 LIZZI DCT
 }
 ```
 

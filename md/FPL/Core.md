@@ -177,7 +177,7 @@ deriving DecidableEq
 Vertical distance may be expressed in metric or imperial measures.
 
 ```lean
-inductive UnitOfVerticalDistance 
+inductive UnitOfVerticalDistance
   | feet
   | metres
 deriving DecidableEq
@@ -197,7 +197,7 @@ Expression of the vertical position of an aircraft.
 
 ```lean
 structure VerticalPositionOfAircraft where
-  value : Float
+  value : Int
   uom   : UnitOfVerticalDistance
   type  : FlightLevelOrAltitude
 deriving DecidableEq
@@ -215,7 +215,7 @@ Expression of horizontal distance.
 
 ```lean
 structure HorizontalDistance where
-  value : Float₀
+  value : Nat
   uom   : UnitOfHorizontalDistance
 deriving DecidableEq
 ```
@@ -249,7 +249,7 @@ Aircraft speed is a value with respect to a unit of measurement and a datum.
 
 ```lean
 structure AircraftSpeed where
-  value : Float₀
+  value : Nat
   uom   : UnitOfSpeed
   datum : SpeedDatum
   inv   : -- Ground speed cannot be expressed as a mach number

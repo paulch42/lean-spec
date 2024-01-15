@@ -38,7 +38,7 @@ total.
 
 ```lean
 def List₁.first : List₁ α → α
-  | ⟨a::_, _⟩ => a 
+  | ⟨a::_, _⟩ => a
 
 def List₁.last : List₁ α → α
   | ⟨[a], _⟩      => a
@@ -188,7 +188,8 @@ def FindPath₃ (g : Graph) (s e : Node) :=
 `⊕` is the disjoint/discriminated union type, also called `Sum`.
 
 `FindPath₃` returns a disjoint sum. If a path exists it is returned as the left injection.
-If no path exists, evidence is returned as the right injection.
+If no path exists, evidence is returned as the right injection (which in essence corresponds
+to an error message).
 
 ## Shortest Path
 
